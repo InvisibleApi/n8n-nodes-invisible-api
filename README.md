@@ -1,81 +1,99 @@
 # n8n-nodes-invisible-api
 
-This is an n8n community node. It lets you use the [Invisible API](https://api.invisibleapi.ai) in your n8n workflows.
+[![npm version](https://img.shields.io/npm/v/n8n-nodes-invisible-api.svg)](https://www.npmjs.com/package/n8n-nodes-invisible-api)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![n8n community node](https://img.shields.io/badge/n8n-community--node-orange)](https://www.npmjs.com/package/n8n-nodes-invisible-api)
 
-Invisible API is a single layer between your workflows and the social platforms behind it. Today it covers Instagram and X publishing plus Instagram account insights; Google and Facebook publishing, broader insights and further social platform integrations are on the way — this node grows with the API.
+> One node between your n8n workflows and the social platforms behind them — publish and schedule Instagram and X content, track delivery, and pull Instagram account insights.
 
-[n8n](https://n8n.io/) is a [fair-code licensed](https://docs.n8n.io/reference/license/) workflow automation platform.
+[InvisibleAPI](https://invisibleapi.ai) is a single layer over the social platforms. Today it covers Instagram and X publishing plus Instagram account insights; Google and Facebook publishing, broader insights and further platforms are on the way — this node grows with the API.
 
-[Installation](#installation)
-[Operations](#operations)
-[Credentials](#credentials)
-[Usage](#usage)
-[Resources](#resources)
+## Install
 
-## Installation
+On self-hosted n8n: **Settings → Community nodes → Install**, then enter:
 
-Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
+```
+n8n-nodes-invisible-api
+```
 
-In short, on self-hosted n8n: **Settings → Community nodes → Install**, then enter `n8n-nodes-invisible-api`.
+Full instructions: [n8n community nodes installation guide](https://docs.n8n.io/integrations/community-nodes/installation/).
+
+## What you can build
+
+**Publish a content calendar, and know whether it landed**
+
+```text
+⏱  Schedule Trigger (daily, 9am)
+  ↓
+📄 Google Sheets: read today's row (caption + image URL)
+  ↓
+📤 InvisibleAPI: Publish Job → Create (Instagram + X targets)
+  ↓
+⏳ Wait (2 min)
+  ↓
+🔎 InvisibleAPI: Publish Job → Get (the returned id)
+  ↓
+🔀 IF status = failed  →  💬 Slack: alert the team
+```
+
+**Cross-post every new blog article**
+
+```text
+📰 RSS Feed Trigger (your blog)
+  ↓
+🤖 AI node: write a 280-character version of the title + summary
+  ↓
+📤 InvisibleAPI: Publish Job → Create (X target, text-only)
+```
+
+**Weekly Instagram performance report**
+
+```text
+⏱  Schedule Trigger (Mondays)
+  ↓
+👥 InvisibleAPI: Social Account → Get Many (provider = Instagram)
+  ↓
+📈 InvisibleAPI: Insight → Get Instagram Account Insights
+     (metrics: reach, follower_count · period: week)
+  ↓
+📄 Google Sheets: append row   →   💬 Slack: post the summary
+```
 
 ## Operations
 
-### Organization
-
-- **Get Many** — list the organizations the API key can reach
-
-### Social Account
-
-- **Get Many** — list the connected accounts usable as publish targets, optionally filtered by provider
-
-### Publish Job
-
-- **Create** — start a publish job for one or more connected accounts, immediately or scheduled
-- **Get** — retrieve a single publish job with its delivery records
-- **Get Many** — retrieve an organization's publish jobs, with paging or **Return All**
-- **Retry** — queue the failed deliveries of a publish job for a safe retry; deliveries that already reached the provider are rejected to avoid duplicate posts
-
-### Insight
-
-- **Get Instagram Account Insights** — fetch Meta account-level insights for a connected Instagram account
+| Resource | Operation | What it does |
+|---|---|---|
+| Organization | Get Many | List the organizations the API key can reach |
+| Social Account | Get Many | List connected accounts usable as publish targets, optionally filtered by provider |
+| Publish Job | Create | Start a publish job for one or more connected accounts, immediately or scheduled |
+| Publish Job | Get | Retrieve a single publish job with its delivery records |
+| Publish Job | Get Many | Retrieve an organization's publish jobs, with paging or **Return All** |
+| Publish Job | Retry | Queue a job's failed deliveries for a safe retry — deliveries that already reached the provider are rejected, so nothing gets posted twice |
+| Insight | Get Instagram Account Insights | Fetch Meta account-level insights for a connected Instagram account |
 
 ## Credentials
 
-Create an organization API key in the Invisible API dashboard (**Organization → API Keys**) and paste it into the *Invisible API* credential.
+Create an organization API key in the [InvisibleAPI dashboard](https://app.invisibleapi.ai) (**Organization → API Keys**) and paste it into the *InvisibleAPI* credential.
 
-Notes:
+| | |
+|---|---|
+| **Auth** | Sent as `Authorization: Bearer <api-key>` |
+| **Scopes** | Reading needs `publishing:read`, creating publish jobs needs `publishing:publish`; `*` covers both |
+| **Organization** | A key belongs to exactly one organization, so the dropdown normally shows a single entry |
+| **Base URL** | Defaults to `https://api.invisibleapi.ai`; only change it for a staging or self-hosted backend |
 
-- An API key belongs to exactly one organization, so the **Organization** dropdown normally shows a single entry.
-- Keys are scoped. Reading needs `publishing:read`, creating publish jobs needs `publishing:publish`; `*` covers both.
-- The key is sent as `Authorization: Bearer <api-key>`.
-- **Base URL** defaults to `https://api.invisibleapi.ai` and only needs changing for a staging or self-hosted backend.
+## Things to know
 
-## Usage
+Behaviour that will bite you otherwise:
 
-### Publishing a post
+- **The job status you get back is not final.** Create returns as soon as the workflow start is recorded. To wait for delivery, follow up with **Publish Job → Get** on the returned `id` (a Wait node in between works well) and read `status` plus `deliveries`.
+- **What a post may contain depends on the target.** Instagram requires at least one media item — image, video, or several for a carousel. X also accepts text-only posts, caps text at 280 characters, and allows either up to 4 images (no videos) or a single video. Content a provider can't publish is rejected with a validation error before any delivery starts.
+- **`Client Request ID` is an idempotency key.** Reuse the same value when retrying a failed run; send a new value when you deliberately want to publish identical content again.
+- **Retry is deliberately conservative.** It only requeues deliveries it can prove never reached the provider, and answers with a conflict error when nothing about the job is safely retryable.
+- **Some Meta metrics need `total_value`.** `accounts_engaged`, `total_interactions`, `likes` and friends are silently omitted from time-series responses — set **Metric Type** to `total_value` to get them.
+- **Demographics metrics need `Timeframe`.** `follower_demographics` and `engaged_audience_demographics` require it, and Meta gives it precedence over **Since** and **Until**.
 
-1. Add an **Invisible API** node, resource **Publish Job**, operation **Create**.
-2. Pick the **Organization**, then pick one or more **Targets** — the dropdown lists connected Instagram and X accounts and is refreshed from the API.
-3. Write a **Caption** and/or add **Media Items** (media type plus a source URL). What a post may contain depends on the targets:
-   - **Instagram** requires at least one media item — image, video, or several items for a carousel.
-   - **X** also accepts text-only posts, and limits post text to 280 characters. An X post with several media items supports up to 4 images (no videos); a single image or a single video is fine.
-4. Optionally set **Requested Publish At** to schedule instead of publishing right away.
-5. Optionally set **Client Request ID**. It is an idempotency key: reuse the same value when retrying a failed run, and send a new value when you deliberately want to publish identical content again.
-
-Content that a target provider cannot publish (for example an Instagram target with no media, or five images on an X target) is rejected by the API with a validation error before any delivery starts.
-
-The node returns the publish job right after the workflow start is recorded — status is not final yet. To wait for delivery, follow up with **Publish Job → Get** on the returned `id` (a Wait node in between works well) and read `status` plus `deliveries`.
-
-If a job ends up failed, **Publish Job → Retry** queues its eligible failed deliveries again. The API only retries deliveries it can prove never reached the provider, and answers with a conflict error when nothing about the job is safely retryable.
-
-### Reading insights
-
-Resource **Insight** → **Get Instagram Account Insights**. **Metric** takes one metric or a comma-separated list, and **Period** is a Meta period such as `day`, `week`, `days_28` or `lifetime`.
-
-Two Meta quirks worth knowing:
-
-- Several metrics (`accounts_engaged`, `total_interactions`, `likes`, …) are only returned when **Metric Type** is `total_value`; Meta silently omits them from time-series responses.
-- Demographics metrics (`follower_demographics`, `engaged_audience_demographics`) require **Timeframe**, which Meta gives precedence over **Since** and **Until**.
+**Metric** takes one metric or a comma-separated list. **Period** is a Meta period such as `day`, `week`, `days_28` or `lifetime`.
 
 ## Compatibility
 
@@ -105,9 +123,17 @@ Adding a resource means: a description module, an action module, and one line in
 
 ## Resources
 
-- [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
-- [Invisible API developer reference](https://api.invisibleapi.ai/public/developer-docs.yaml)
+| | |
+|---|---|
+| 🌐 Website | [invisibleapi.ai](https://invisibleapi.ai) |
+| 🔑 Dashboard | [app.invisibleapi.ai](https://app.invisibleapi.ai) |
+| 🔌 API endpoint | `https://api.invisibleapi.ai` |
+| 📦 npm | [n8n-nodes-invisible-api](https://www.npmjs.com/package/n8n-nodes-invisible-api) |
+| 💻 GitHub | [InvisibleApi/n8n-nodes-invisible-api](https://github.com/InvisibleApi/n8n-nodes-invisible-api) |
+| 📖 API reference | [developer-docs.yaml](https://api.invisibleapi.ai/public/developer-docs.yaml) |
+| 📝 Changelog | [CHANGELOG.md](https://github.com/InvisibleApi/n8n-nodes-invisible-api/blob/main/CHANGELOG.md) |
+| 🧩 n8n docs | [Community nodes](https://docs.n8n.io/integrations/#community-nodes) |
 
 ## License
 
-[MIT](https://github.com/embedsocial/n8n-nodes-invisible-api/blob/main/LICENSE.md)
+[MIT](https://github.com/InvisibleApi/n8n-nodes-invisible-api/blob/main/LICENSE.md)

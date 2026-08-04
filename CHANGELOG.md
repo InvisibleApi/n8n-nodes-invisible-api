@@ -24,6 +24,6 @@
 ## 0.1.0
 
 - Initial release.
-- Credential: Invisible API organization API key, sent as `Authorization: Bearer <api-key>`, with a configurable base URL.
+- Credential: InvisibleAPI organization API key, sent as `Authorization: Bearer <api-key>`, with a configurable base URL.
 - Resources: Organization (get many), Social Account (get many, provider filter), Publish Job (create, get, get many with Return All), Insight (Instagram account insights).
 - Dynamic dropdowns for organizations and publish targets.

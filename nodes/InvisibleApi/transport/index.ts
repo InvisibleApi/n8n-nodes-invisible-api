@@ -13,7 +13,7 @@ export const DEFAULT_BASE_URL = 'https://api.invisibleapi.ai';
 export type InvisibleApiResponse = IDataObject | IDataObject[];
 
 /**
- * Single entry point for every Invisible API call. Keeps auth, base URL
+ * Single entry point for every InvisibleAPI call. Keeps auth, base URL
  * resolution and JSON handling in one place so new resources only have to
  * describe their endpoint.
  */

@@ -8,7 +8,9 @@ import {
 
 export class InvisibleApi implements ICredentialType {
 	name = 'invisibleApi';
-	displayName = 'Invisible API';
+	// The brand name already ends in "API" as one word, so the linter's " API" suffix would read "InvisibleAPI API".
+	// eslint-disable-next-line n8n-nodes-base/cred-class-field-display-name-missing-api
+	displayName = 'InvisibleAPI';
 	icon: Icon = {
 		light: 'file:../nodes/InvisibleApi/invisibleApi.svg',
 		dark: 'file:../nodes/InvisibleApi/invisibleApi.dark.svg',
@@ -22,7 +24,7 @@ export class InvisibleApi implements ICredentialType {
 			typeOptions: { password: true },
 			default: '',
 			required: true,
-			hint: 'Create an organization API key in the Invisible API dashboard (Organization → API Keys). Keys are scoped per organization.',
+			hint: 'Create an organization API key in the InvisibleAPI dashboard (Organization → API Keys). Keys are scoped per organization.',
 		},
 		{
 			displayName: 'Base URL',
@@ -30,7 +32,7 @@ export class InvisibleApi implements ICredentialType {
 			type: 'string',
 			default: 'https://api.invisibleapi.ai',
 			required: true,
-			description: 'Change only when pointing at a staging or self-hosted Invisible API backend',
+			description: 'Change only when pointing at a staging or self-hosted InvisibleAPI backend',
 		},
 	];
 

@@ -42,14 +42,14 @@ const RESOURCE_HANDLERS: Record<string, ResourceHandler> = {
 
 export class InvisibleApi implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Invisible API',
+		displayName: 'InvisibleAPI',
 		name: 'invisibleApi',
 		icon: { light: 'file:invisibleApi.svg', dark: 'file:invisibleApi.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Publish content and read insights through the Invisible API',
-		defaults: { name: 'Invisible API' },
+		description: 'Publish content and read insights through the InvisibleAPI',
+		defaults: { name: 'InvisibleAPI' },
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
 		usableAsTool: true,

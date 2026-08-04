@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-invisible-api",
   "version": "0.2.2",
-  "description": "n8n community node for the Invisible API — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
+  "description": "n8n community node for the InvisibleAPI — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
@@ -21,17 +21,17 @@
     "embedsocial"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/embedsocial/n8n-nodes-invisible-api",
+  "homepage": "https://invisibleapi.ai",
   "author": {
-    "name": "Invisible API",
+    "name": "InvisibleAPI",
     "email": "support@invisibleapi.ai"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/embedsocial/n8n-nodes-invisible-api.git"
+    "url": "git+https://github.com/InvisibleApi/n8n-nodes-invisible-api.git"
   },
   "bugs": {
-    "url": "https://github.com/embedsocial/n8n-nodes-invisible-api/issues"
+    "url": "https://github.com/InvisibleApi/n8n-nodes-invisible-api/issues"
   },
   "main": "dist/nodes/InvisibleApi/InvisibleApi.node.js",
   "scripts": {
