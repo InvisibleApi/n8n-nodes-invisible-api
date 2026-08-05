@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0
+
+- Publish Job → Create no longer fails with an opaque 400 when scheduling. The API validates `requestedPublishAt` against the strict ATOM format, which rejects both the fractional seconds n8n emits through Luxon's `toISO()` and a picker value with no UTC offset. The node now normalises the value to UTC ATOM before sending, and reports an unparseable date as a node error naming the item. An epoch number, which the API never accepted, is now rejected by the node instead of being forwarded.
+- API validation and conflict failures now report which field was rejected. The API returns a per-field `errors` map and a matching `errorMeta` map of stable keys; both were being discarded in favour of the bare status, so "Scheduled publishing time must be in the future." reached the user as an unexplained 409. The field messages become the node error message and the error keys its description.
+- Publish Job → Get Many with "Return All" no longer emits the same publish job twice. The list query joins each job's deliveries and applies the page limit to the joined rows, so a job with several deliveries can straddle a page boundary and be returned on both pages. Pages are now accumulated by job ID.
+- Publish Job and Social Account URL-encode the organization and publish job IDs. Previously a `#` in a publish job ID truncated the path, silently turning Retry into Get and reporting success without retrying anything.
+- Caption, first comment, client request ID, alt text, source asset ID, source URL and public fetch URL are checked against the API's length limits before the request, and the two URL fields against the http/https scheme the API requires, so a violation names the field and the input item instead of failing the whole request with a 400.
+- Media item metadata that parses to a JSON array or scalar is rejected with a clear message. The API's type check accepts both, so such a value was previously stored as unusable metadata.
+- Empty required values reaching the node through an expression or an AI-tool call are rejected by name, instead of building a malformed path such as `/api/v1/organizations//social-accounts` and surfacing as a 404.
+- Text parameters resolved to a non-string by an expression no longer crash the node with a `TypeError`, and "Continue On Fail" now also catches a resource or operation that fails to resolve.
+- Alt text is trimmed like every other text field, and a caption consisting only of whitespace is no longer sent.
+
 ## 0.3.0
 
 - Insight → Social Account now lists only Instagram professional accounts. Insights capability is resolved per provider and target type by the API, so X accounts could only ever be picked to produce a conflict error.

@@ -1,6 +1,8 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
+import { toTrimmedString } from '../helpers/parameters';
+import { requireValue } from '../helpers/validation';
 import { invisibleApiRequest } from '../transport';
 
 export async function executeSocialAccount(
@@ -9,17 +11,22 @@ export async function executeSocialAccount(
 	itemIndex: number,
 ): Promise<IDataObject[]> {
 	if (operation === 'getAll') {
-		const organizationId = this.getNodeParameter('organizationId', itemIndex) as string;
+		const organizationId = requireValue(
+			this.getNode(),
+			toTrimmedString(this.getNodeParameter('organizationId', itemIndex)),
+			'Organization',
+			itemIndex,
+		);
 		const filters = this.getNodeParameter('filters', itemIndex, {}) as IDataObject;
 
 		const response = (await invisibleApiRequest.call(
 			this,
 			'GET',
-			`/api/v1/organizations/${organizationId}/social-accounts`,
+			`/api/v1/organizations/${encodeURIComponent(organizationId)}/social-accounts`,
 		)) as IDataObject[];
 
 		const accounts = Array.isArray(response) ? response : [response];
-		const provider = ((filters.provider as string | undefined) ?? '').trim().toLowerCase();
+		const provider = toTrimmedString(filters.provider).toLowerCase();
 
 		if (provider === '') {
 			return accounts;

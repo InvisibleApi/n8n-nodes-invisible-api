@@ -21,6 +21,11 @@ import {
 	socialAccountOperations,
 } from './descriptions/SocialAccountDescription';
 import {
+	describeApiProblem,
+	describeApiProblemMeta,
+	extractApiProblem,
+} from './helpers/apiProblem';
+import {
 	getInstagramSocialAccounts,
 	getOrganizations,
 	getSocialAccounts,
@@ -43,6 +48,28 @@ const RESOURCE_HANDLERS: Record<string, ResourceHandler> = {
 	publishJob: executePublishJob,
 	insights: executeInsights,
 };
+
+/** Node input problems are already precise; API failures need their field errors promoted. */
+function toNodeError(
+	this: IExecuteFunctions,
+	error: unknown,
+	itemIndex: number,
+): NodeOperationError | NodeApiError {
+	if (error instanceof NodeOperationError || error instanceof NodeApiError) {
+		return error;
+	}
+
+	const problem = extractApiProblem(error);
+	if (problem === undefined) {
+		return new NodeApiError(this.getNode(), error as JsonObject, { itemIndex });
+	}
+
+	return new NodeApiError(this.getNode(), error as JsonObject, {
+		itemIndex,
+		message: describeApiProblem(problem),
+		description: describeApiProblemMeta(problem) ?? problem.title,
+	});
+}
 
 export class InvisibleApi implements INodeType {
 	description: INodeTypeDescription = {
@@ -100,10 +127,13 @@ export class InvisibleApi implements INodeType {
 		const returnData: INodeExecutionData[] = [];
 
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-			const resource = this.getNodeParameter('resource', itemIndex) as string;
-			const operation = this.getNodeParameter('operation', itemIndex) as string;
-
 			try {
+				// Read inside the try so that a parameter that fails to resolve is
+				// still routed through "Continue On Fail" instead of aborting the
+				// whole execution.
+				const resource = this.getNodeParameter('resource', itemIndex) as string;
+				const operation = this.getNodeParameter('operation', itemIndex) as string;
+
 				const handler = RESOURCE_HANDLERS[resource];
 				if (handler === undefined) {
 					throw new NodeOperationError(
@@ -122,14 +152,14 @@ export class InvisibleApi implements INodeType {
 					})),
 				);
 			} catch (error) {
-				const nodeError =
-					error instanceof NodeOperationError || error instanceof NodeApiError
-						? error
-						: new NodeApiError(this.getNode(), error as JsonObject, { itemIndex });
+				const nodeError = toNodeError.call(this, error, itemIndex);
 
 				if (this.continueOnFail()) {
 					returnData.push({
-						json: { error: nodeError.message },
+						json: {
+							error: nodeError.message,
+							...(nodeError.description ? { errorDetails: nodeError.description } : {}),
+						},
 						pairedItem: { item: itemIndex },
 					});
 					continue;
