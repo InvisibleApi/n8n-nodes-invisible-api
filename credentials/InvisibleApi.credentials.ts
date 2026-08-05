@@ -6,6 +6,11 @@ import {
 	INodeProperties,
 } from 'n8n-workflow';
 
+import {
+	BASE_URL_TEST_EXPRESSION,
+	DEFAULT_BASE_URL,
+} from '../nodes/InvisibleApi/transport/baseUrl';
+
 export class InvisibleApi implements ICredentialType {
 	name = 'invisibleApi';
 	// The brand name already ends in "API" as one word, so the linter's " API" suffix would read "InvisibleAPI API".
@@ -30,9 +35,10 @@ export class InvisibleApi implements ICredentialType {
 			displayName: 'Base URL',
 			name: 'baseUrl',
 			type: 'string',
-			default: 'https://api.invisibleapi.ai',
+			default: DEFAULT_BASE_URL,
 			required: true,
-			description: 'Change only when pointing at a staging or self-hosted InvisibleAPI backend',
+			description:
+				'Change only when pointing at a staging or self-hosted InvisibleAPI backend. Must be an http or https URL; prefer https, since http sends the API key over the network in cleartext.',
 		},
 	];
 
@@ -47,10 +53,7 @@ export class InvisibleApi implements ICredentialType {
 
 	test: ICredentialTestRequest = {
 		request: {
-			// Mirror the transport's base URL handling: trim, strip trailing
-			// slashes and fall back to production when the field is blank.
-			baseURL:
-				"={{ ($credentials.baseUrl || '').trim().replace(/\\/+$/, '') || 'https://api.invisibleapi.ai' }}",
+			baseURL: BASE_URL_TEST_EXPRESSION,
 			url: '/api/v1/organizations',
 			method: 'GET',
 		},

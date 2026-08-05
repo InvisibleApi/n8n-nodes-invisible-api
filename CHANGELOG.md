@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Base URL normalisation now has a single source. The rule was written twice — once in TypeScript for node execution and once as an n8n expression for the credential test — and the two had already drifted: a base URL of `///` resolved to the production default in the credential test but to an empty string during execution, sending every request to a relative path. The credential test expression is now generated from the same constants the normaliser uses.
+- The credential base URL is rejected unless it is a valid http or https URL, instead of being pasted into the request as-is. The field also now states that http sends the API key in cleartext, since the key travels as a bearer token.
+- Removed the unused `qs` and `perPage` parameters from `invisibleApiRequestAllItems`; no caller ever passed either.
+- Pinned the transitive `uuid` dependency to `^11.1.1` through an override, clearing GHSA-w5hq-g745-h8pq. `npm audit fix` could not resolve it on its own: `@langchain/classic` and `@langchain/community` both request `^10.0.0`, and the fix lands outside that range. Development dependency only — nothing here ships in the published package.
+
 ## 0.4.0
 
 - Publish Job → Create no longer fails with an opaque 400 when scheduling. The API validates `requestedPublishAt` against the strict ATOM format, which rejects both the fractional seconds n8n emits through Luxon's `toISO()` and a picker value with no UTC offset. The node now normalises the value to UTC ATOM before sending, and reports an unparseable date as a node error naming the item. An epoch number, which the API never accepted, is now rejected by the node instead of being forwarded.
