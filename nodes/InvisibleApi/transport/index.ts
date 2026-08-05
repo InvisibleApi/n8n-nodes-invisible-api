@@ -7,8 +7,10 @@ import type {
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
+import { assertSupportedBaseUrl, normalizeBaseUrl } from './baseUrl';
+
 export const CREDENTIALS_NAME = 'invisibleApi';
-export const DEFAULT_BASE_URL = 'https://api.invisibleapi.ai';
+export { DEFAULT_BASE_URL } from './baseUrl';
 
 export type InvisibleApiResponse = IDataObject | IDataObject[];
 
@@ -25,8 +27,8 @@ export async function invisibleApiRequest(
 	qs?: IDataObject,
 ): Promise<InvisibleApiResponse> {
 	const credentials = await this.getCredentials(CREDENTIALS_NAME);
-	const configuredBaseUrl = (credentials.baseUrl as string | undefined) ?? '';
-	const baseUrl = (configuredBaseUrl.trim() || DEFAULT_BASE_URL).replace(/\/+$/, '');
+	const baseUrl = normalizeBaseUrl(credentials.baseUrl);
+	assertSupportedBaseUrl(this.getNode(), baseUrl);
 
 	const options: IHttpRequestOptions = {
 		method,
@@ -65,16 +67,14 @@ export async function invisibleApiRequest(
 export async function invisibleApiRequestAllItems(
 	this: IExecuteFunctions,
 	endpoint: string,
-	qs: IDataObject = {},
-	perPage = 100,
 ): Promise<IDataObject[]> {
 	const collected: IDataObject[] = [];
 	const seenIds = new Set<string>();
 	const maxPages = 1000;
+	const perPage = 100;
 
 	for (let page = 1; page <= maxPages; page += 1) {
 		const response = (await invisibleApiRequest.call(this, 'GET', endpoint, undefined, {
-			...qs,
 			page,
 			perPage,
 		})) as IDataObject[];
