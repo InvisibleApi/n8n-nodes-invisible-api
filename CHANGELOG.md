@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0
+
+- Added a vitest unit-test suite for the pure helpers — base URL normalisation (including a drift test that evaluates the credential-test expression against `normalizeBaseUrl`), timestamp and input validation, API problem extraction, media type inference, and the pagination loop with its dedup and page-cap behaviour. CI runs it between lint and build.
+- A date-only Requested Publish At (`2026-05-17`, reachable only through an expression, since the picker always emits a time) is now read as midnight in the n8n instance's timezone, like a datetime without an offset. JavaScript reads bare dates as UTC midnight, which scheduled the post hours off for any instance not running in UTC.
+- Publish Job → Get Many clamps Limit to the API's 1–100 page size and rejects non-numeric values. The editor already enforces the range, but an expression could send anything.
+- A Media Type outside auto/image/video — again only possible through an expression — is rejected with a clear message instead of being forwarded for the API to bounce.
+- Pagination dedup now recognises numeric IDs as well as strings, so duplicate-page protection would survive an ID type change in the API.
+- The Get Many Page option now documents that a job whose deliveries straddle a page boundary can appear on two consecutive pages.
+- `inferMediaTypeFromUrl` requires a valid absolute URL instead of carrying an unreachable fallback; its only caller validates the URL first.
+
 ## 0.6.0
 
 - Publish Job → Create media items are down to a Media URL and Alt Text, matching what the InvisibleAPI dashboard actually collects.

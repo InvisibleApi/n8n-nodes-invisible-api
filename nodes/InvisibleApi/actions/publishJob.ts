@@ -1,7 +1,7 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { AUTO_MEDIA_TYPE, inferMediaTypeFromUrl } from '../helpers/media';
+import { AUTO_MEDIA_TYPE, EXPLICIT_MEDIA_TYPES, inferMediaTypeFromUrl } from '../helpers/media';
 import { toStringList, toTrimmedString } from '../helpers/parameters';
 import {
 	API_MAX_LENGTHS,
@@ -36,12 +36,23 @@ function buildMediaItems(
 		assertHttpUrl(this.getNode(), sourceUrl, `${label} media URL`, itemIndex);
 
 		const configuredMediaType = toTrimmedString(entry.mediaType).toLowerCase();
+		const useInferredType = configuredMediaType === '' || configuredMediaType === AUTO_MEDIA_TYPE;
+		if (
+			!useInferredType &&
+			!(EXPLICIT_MEDIA_TYPES as readonly string[]).includes(configuredMediaType)
+		) {
+			throw new NodeOperationError(
+				this.getNode(),
+				`${label} has the unknown media type "${configuredMediaType}"`,
+				{
+					itemIndex,
+					description: `Use "${AUTO_MEDIA_TYPE}", "${EXPLICIT_MEDIA_TYPES.join('" or "')}".`,
+				},
+			);
+		}
 
 		const mediaItem: IDataObject = {
-			mediaType:
-				configuredMediaType === '' || configuredMediaType === AUTO_MEDIA_TYPE
-					? inferMediaTypeFromUrl(sourceUrl)
-					: configuredMediaType,
+			mediaType: useInferredType ? inferMediaTypeFromUrl(sourceUrl) : configuredMediaType,
 			// The API requires sourceUrl and treats publicFetchUrl as an override;
 			// the dashboard submits the one URL it collects as both, so match it.
 			sourceUrl,
@@ -196,7 +207,12 @@ export async function executePublishJob(
 			return await invisibleApiRequestAllItems.call(this, basePath);
 		}
 
-		const limit = this.getNodeParameter('limit', itemIndex, 50) as number;
+		// The editor enforces the API's 1–100 page size; expressions bypass it.
+		const rawLimit = Number(this.getNodeParameter('limit', itemIndex, 50));
+		if (!Number.isFinite(rawLimit)) {
+			throw new NodeOperationError(this.getNode(), 'Limit must be a number', { itemIndex });
+		}
+		const limit = Math.min(Math.max(Math.trunc(rawLimit), 1), 100);
 		const options = this.getNodeParameter('options', itemIndex, {}) as IDataObject;
 
 		const response = (await invisibleApiRequest.call(this, 'GET', basePath, undefined, {

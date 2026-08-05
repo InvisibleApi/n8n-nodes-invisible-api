@@ -84,7 +84,9 @@ export async function invisibleApiRequestAllItems(
 		}
 
 		for (const entry of response) {
-			const id = typeof entry?.id === 'string' ? entry.id : undefined;
+			const rawId = entry?.id;
+			const id =
+				typeof rawId === 'string' || typeof rawId === 'number' ? String(rawId) : undefined;
 
 			if (id !== undefined) {
 				if (seenIds.has(id)) {
