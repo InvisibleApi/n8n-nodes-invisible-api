@@ -1,5 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 
+import { INSTAGRAM_ACCOUNT_METRIC_OPTIONS, INSTAGRAM_PERIOD_OPTIONS } from './instagramMetrics';
+
 export const insightsOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
@@ -25,34 +27,35 @@ export const insightsFields: INodeProperties[] = [
 		name: 'socialAccountId',
 		type: 'options',
 		typeOptions: {
-			loadOptionsMethod: 'getSocialAccounts',
+			loadOptionsMethod: 'getInstagramSocialAccounts',
 			loadOptionsDependsOn: ['organizationId'],
 		},
 		required: true,
 		default: '',
 		description:
-			'Instagram account to read insights for. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+			'Instagram account to read insights for. Only Instagram professional accounts are listed, since insights are not available for other providers. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
 		displayOptions: { show: { resource: ['insights'], operation: ['getInstagramAccount'] } },
 	},
 	{
-		displayName: 'Metric',
+		displayName: 'Metrics',
 		name: 'metric',
-		type: 'string',
+		type: 'multiOptions',
 		required: true,
-		default: '',
-		placeholder: 'reach,accounts_engaged',
+		default: [],
+		options: INSTAGRAM_ACCOUNT_METRIC_OPTIONS,
 		description:
-			'Meta insights metric, or several separated by commas. Some metrics (for example accounts_engaged, total_interactions, likes) are only returned when Metric Type is set to total_value.',
+			'Meta insights metrics to request. Several metrics (for example accounts_engaged, total_interactions, likes) are only returned when Metric Type is set to total_value. Use Additional Metrics for anything not listed here.',
 		displayOptions: { show: { resource: ['insights'], operation: ['getInstagramAccount'] } },
 	},
 	{
 		displayName: 'Period',
 		name: 'period',
-		type: 'string',
+		type: 'options',
 		required: true,
 		default: 'day',
-		placeholder: 'day',
-		description: 'Meta insights period, such as day, week, days_28 or lifetime',
+		options: INSTAGRAM_PERIOD_OPTIONS,
+		description:
+			'Meta insights period. Which values a metric supports depends on the metric, and Meta ignores the period entirely for Metric Type total_value.',
 		displayOptions: { show: { resource: ['insights'], operation: ['getInstagramAccount'] } },
 	},
 	{
@@ -63,6 +66,15 @@ export const insightsFields: INodeProperties[] = [
 		default: {},
 		displayOptions: { show: { resource: ['insights'], operation: ['getInstagramAccount'] } },
 		options: [
+			{
+				displayName: 'Additional Metrics',
+				name: 'additionalMetrics',
+				type: 'string',
+				default: '',
+				placeholder: 'metric_name,another_metric',
+				description:
+					'Extra metric names to request alongside the Metrics selection, separated by commas. The API forwards metric names to Meta without validating them, so use this to reach a metric Meta has added since this node was released.',
+			},
 			{
 				displayName: 'Breakdown',
 				name: 'breakdown',
