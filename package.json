@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-invisible-api",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "n8n community node for the InvisibleAPI — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
   "keywords": [
     "n8n-community-node-package",
@@ -37,11 +37,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json && cp nodes/InvisibleApi/invisibleApi.svg nodes/InvisibleApi/invisibleApi.dark.svg dist/nodes/InvisibleApi/",
     "dev": "n8n-node dev",
-    "format": "prettier nodes credentials --write",
-    "lint": "eslint nodes credentials --ext .ts",
-    "lint:fix": "eslint nodes credentials --ext .ts --fix",
+    "format": "prettier nodes credentials tests --write",
+    "lint": "eslint nodes credentials tests --ext .ts",
+    "lint:fix": "eslint nodes credentials tests --ext .ts --fix",
     "prepublishOnly": "npm run build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.test.json"
   },
   "files": [
     "dist"

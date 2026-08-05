@@ -9,6 +9,8 @@ import {
 	assertMaxLength,
 	requireValue,
 	toAtomTimestamp,
+	toBoundedInteger,
+	toCollectionEntries,
 } from '../helpers/validation';
 import { invisibleApiRequest, invisibleApiRequestAllItems } from '../transport';
 
@@ -96,7 +98,12 @@ export async function executePublishJob(
 			});
 		}
 
-		const mediaItemsUi = this.getNodeParameter('mediaItems.item', itemIndex, []) as IDataObject[];
+		const mediaItemsUi = toCollectionEntries(
+			this.getNode(),
+			this.getNodeParameter('mediaItems.item', itemIndex, []),
+			'Media items',
+			itemIndex,
+		);
 		const caption = String(this.getNodeParameter('caption', itemIndex, '') ?? '');
 
 		// The API allows text-only posts on X but requires media for Instagram;
@@ -207,16 +214,21 @@ export async function executePublishJob(
 			return await invisibleApiRequestAllItems.call(this, basePath);
 		}
 
-		// The editor enforces the API's 1–100 page size; expressions bypass it.
-		const rawLimit = Number(this.getNodeParameter('limit', itemIndex, 50));
-		if (!Number.isFinite(rawLimit)) {
-			throw new NodeOperationError(this.getNode(), 'Limit must be a number', { itemIndex });
-		}
-		const limit = Math.min(Math.max(Math.trunc(rawLimit), 1), 100);
+		// The editor enforces the API's 1–100 page size and 1-based page index;
+		// expressions bypass both.
+		const limit = toBoundedInteger(
+			this.getNode(),
+			this.getNodeParameter('limit', itemIndex, 50),
+			'Limit',
+			itemIndex,
+			1,
+			100,
+		);
 		const options = this.getNodeParameter('options', itemIndex, {}) as IDataObject;
+		const page = toBoundedInteger(this.getNode(), options.page ?? 1, 'Page', itemIndex, 1);
 
 		const response = (await invisibleApiRequest.call(this, 'GET', basePath, undefined, {
-			page: (options.page as number | undefined) ?? 1,
+			page,
 			perPage: limit,
 		})) as IDataObject[];
 

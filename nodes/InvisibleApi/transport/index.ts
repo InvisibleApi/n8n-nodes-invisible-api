@@ -53,16 +53,21 @@ export async function invisibleApiRequest(
 }
 
 /**
- * Walks a paginated list endpoint until an empty page comes back. Only the
- * publish jobs list paginates (with `page` / `perPage`) — the organizations
- * and social-accounts endpoints return their full list in one response.
+ * One empty page is not the end: the API applies the page limit before dropping
+ * rows the key's social-account restrictions don't cover, so a page can come
+ * back empty with populated pages behind it. The endpoint returns neither a
+ * total count nor a `hasMore` flag, leaving repetition as the only end signal.
+ */
+const EMPTY_PAGES_BEFORE_END = 3;
+
+/**
+ * Walks a paginated list endpoint until it ends. Only the publish jobs list
+ * paginates (with `page` / `perPage`) — the organizations and social-accounts
+ * endpoints return their full list in one response.
  *
- * Two quirks of the list endpoint shape this loop. A short page is NOT a
- * reliable end signal: the API filters out rows the key's social-account
- * restrictions don't cover after applying the page limit. And pages can
- * overlap: the limit applies to delivery-joined rows, so a job with several
- * deliveries can straddle a page boundary and be returned twice — hence
- * accumulating by ID.
+ * Pages can also overlap: the limit applies to delivery-joined rows, so a job
+ * with several deliveries can straddle a page boundary and be returned twice —
+ * hence accumulating by ID.
  */
 export async function invisibleApiRequestAllItems(
 	this: IExecuteFunctions,
@@ -72,6 +77,7 @@ export async function invisibleApiRequestAllItems(
 	const seenIds = new Set<string>();
 	const maxPages = 1000;
 	const perPage = 100;
+	let emptyPages = 0;
 
 	for (let page = 1; page <= maxPages; page += 1) {
 		const response = (await invisibleApiRequest.call(this, 'GET', endpoint, undefined, {
@@ -79,14 +85,24 @@ export async function invisibleApiRequestAllItems(
 			perPage,
 		})) as IDataObject[];
 
-		if (!Array.isArray(response) || response.length === 0) {
+		if (!Array.isArray(response)) {
 			return collected;
 		}
 
+		if (response.length === 0) {
+			emptyPages += 1;
+			if (emptyPages >= EMPTY_PAGES_BEFORE_END) {
+				return collected;
+			}
+
+			continue;
+		}
+
+		emptyPages = 0;
+
 		for (const entry of response) {
 			const rawId = entry?.id;
-			const id =
-				typeof rawId === 'string' || typeof rawId === 'number' ? String(rawId) : undefined;
+			const id = typeof rawId === 'string' || typeof rawId === 'number' ? String(rawId) : undefined;
 
 			if (id !== undefined) {
 				if (seenIds.has(id)) {

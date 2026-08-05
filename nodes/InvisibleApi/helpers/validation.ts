@@ -1,4 +1,4 @@
-import type { INode } from 'n8n-workflow';
+import type { IDataObject, INode } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
 import { toTrimmedString } from './parameters';
@@ -20,6 +20,62 @@ export function requireValue(node: INode, value: string, label: string, itemInde
 	}
 
 	return value;
+}
+
+/**
+ * Numeric ranges are enforced by the editor, which expressions bypass. Out-of-
+ * range values are clamped rather than rejected, since the intent — the largest
+ * page the API allows, the first page — is unambiguous.
+ */
+export function toBoundedInteger(
+	node: INode,
+	value: unknown,
+	label: string,
+	itemIndex: number,
+	min: number,
+	max: number = Number.MAX_SAFE_INTEGER,
+): number {
+	const parsed = Number(value);
+	if (!Number.isFinite(parsed)) {
+		throw new NodeOperationError(node, `${label} must be a number`, { itemIndex });
+	}
+
+	return Math.min(Math.max(Math.trunc(parsed), min), max);
+}
+
+/**
+ * A `fixedCollection` resolves to an array of entries in the editor, but an
+ * expression or AI-tool call can supply a lone entry or a scalar. A lone entry
+ * is wrapped, because the intent is clear; anything else is rejected by name,
+ * because reading it as "no entries" would drop media from the post and publish
+ * it anyway.
+ */
+export function toCollectionEntries(
+	node: INode,
+	value: unknown,
+	label: string,
+	itemIndex: number,
+): IDataObject[] {
+	if (value === undefined || value === null || value === '') {
+		return [];
+	}
+
+	const entries = Array.isArray(value) ? value : [value];
+
+	return entries.map((entry, entryIndex) => {
+		if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+			throw new NodeOperationError(
+				node,
+				`${label} entry ${entryIndex + 1} is not a set of fields`,
+				{
+					itemIndex,
+					description: `Received the ${Array.isArray(entry) ? 'array' : typeof entry} ${JSON.stringify(entry)}. Provide one object of fields per entry.`,
+				},
+			);
+		}
+
+		return entry as IDataObject;
+	});
 }
 
 export function assertMaxLength(
