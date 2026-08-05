@@ -62,7 +62,8 @@ export function assertHttpUrl(node: INode, value: string, label: string, itemInd
  * The API requires the strict ATOM format, which rejects both the fractional
  * seconds n8n emits through Luxon's `toISO()` and a picker value carrying no
  * offset. A value with no offset is read in the timezone the n8n instance runs
- * in, the same way JavaScript reads it.
+ * in — including date-only values, which are extended to local midnight because
+ * JavaScript would otherwise read them as UTC midnight.
  */
 export function toAtomTimestamp(
 	node: INode,
@@ -75,7 +76,8 @@ export function toAtomTimestamp(
 		return '';
 	}
 
-	const parsed = new Date(raw);
+	const normalized = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw;
+	const parsed = new Date(normalized);
 	if (Number.isNaN(parsed.getTime())) {
 		throw new NodeOperationError(node, `${label} is not a valid date`, {
 			itemIndex,

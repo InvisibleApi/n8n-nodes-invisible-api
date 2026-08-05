@@ -204,7 +204,8 @@ export const publishJobFields: INodeProperties[] = [
 				type: 'number',
 				typeOptions: { minValue: 1 },
 				default: 1,
-				description: '1-based page index to fetch',
+				description:
+					'1-based page index to fetch. The page limit applies to delivery-joined rows, so a job whose deliveries straddle a page boundary can appear on two consecutive pages.',
 			},
 		],
 	},
