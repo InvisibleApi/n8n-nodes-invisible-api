@@ -1,7 +1,8 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { toUniqueStringList } from '../helpers/parameters';
+import { toTrimmedString, toUniqueStringList } from '../helpers/parameters';
+import { API_MAX_LENGTHS, assertMaxLength, requireValue } from '../helpers/validation';
 import { invisibleApiRequest } from '../transport';
 
 const OPTIONAL_QUERY_KEYS = ['since', 'until', 'metric_type', 'breakdown', 'timeframe'] as const;
@@ -12,8 +13,18 @@ export async function executeInsights(
 	itemIndex: number,
 ): Promise<IDataObject[]> {
 	if (operation === 'getInstagramAccount') {
-		const organizationId = this.getNodeParameter('organizationId', itemIndex) as string;
-		const socialAccountId = this.getNodeParameter('socialAccountId', itemIndex) as string;
+		const organizationId = requireValue(
+			this.getNode(),
+			toTrimmedString(this.getNodeParameter('organizationId', itemIndex)),
+			'Organization',
+			itemIndex,
+		);
+		const socialAccountId = requireValue(
+			this.getNode(),
+			toTrimmedString(this.getNodeParameter('socialAccountId', itemIndex)),
+			'Social account',
+			itemIndex,
+		);
 		const additionalFields = this.getNodeParameter(
 			'additionalFields',
 			itemIndex,
@@ -34,18 +45,23 @@ export async function executeInsights(
 			});
 		}
 
-		const period = String(this.getNodeParameter('period', itemIndex, '') ?? '').trim();
-		if (period === '') {
-			throw new NodeOperationError(this.getNode(), 'A period is required', { itemIndex });
-		}
+		const metric = metrics.join(',');
+		assertMaxLength(this.getNode(), metric, API_MAX_LENGTHS.metric, 'Metrics', itemIndex);
+
+		const period = requireValue(
+			this.getNode(),
+			toTrimmedString(this.getNodeParameter('period', itemIndex, '')),
+			'Period',
+			itemIndex,
+		);
 
 		const qs: IDataObject = {
-			metric: metrics.join(','),
+			metric,
 			period,
 		};
 
 		for (const key of OPTIONAL_QUERY_KEYS) {
-			const value = String(additionalFields[key] ?? '').trim();
+			const value = toTrimmedString(additionalFields[key]);
 			if (value !== '') {
 				qs[key] = value;
 			}

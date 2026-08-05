@@ -53,10 +53,14 @@ export async function invisibleApiRequest(
 /**
  * Walks a paginated list endpoint until an empty page comes back. Only the
  * publish jobs list paginates (with `page` / `perPage`) — the organizations
- * and social-accounts endpoints return their full list in one response. A
- * short page is NOT a reliable end signal: the API filters out rows the key's
- * social-account restrictions don't cover after applying the page limit, so
- * a partially filled page can still be followed by more results.
+ * and social-accounts endpoints return their full list in one response.
+ *
+ * Two quirks of the list endpoint shape this loop. A short page is NOT a
+ * reliable end signal: the API filters out rows the key's social-account
+ * restrictions don't cover after applying the page limit. And pages can
+ * overlap: the limit applies to delivery-joined rows, so a job with several
+ * deliveries can straddle a page boundary and be returned twice — hence
+ * accumulating by ID.
  */
 export async function invisibleApiRequestAllItems(
 	this: IExecuteFunctions,
@@ -65,6 +69,7 @@ export async function invisibleApiRequestAllItems(
 	perPage = 100,
 ): Promise<IDataObject[]> {
 	const collected: IDataObject[] = [];
+	const seenIds = new Set<string>();
 	const maxPages = 1000;
 
 	for (let page = 1; page <= maxPages; page += 1) {
@@ -78,7 +83,19 @@ export async function invisibleApiRequestAllItems(
 			return collected;
 		}
 
-		collected.push(...response);
+		for (const entry of response) {
+			const id = typeof entry?.id === 'string' ? entry.id : undefined;
+
+			if (id !== undefined) {
+				if (seenIds.has(id)) {
+					continue;
+				}
+
+				seenIds.add(id);
+			}
+
+			collected.push(entry);
+		}
 	}
 
 	// Reaching the cap without seeing an empty page means the end of the list

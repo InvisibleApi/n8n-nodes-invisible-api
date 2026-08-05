@@ -1,7 +1,14 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError, jsonParse } from 'n8n-workflow';
 
-import { toStringList } from '../helpers/parameters';
+import { toStringList, toTrimmedString } from '../helpers/parameters';
+import {
+	API_MAX_LENGTHS,
+	assertHttpUrl,
+	assertMaxLength,
+	requireValue,
+	toAtomTimestamp,
+} from '../helpers/validation';
 import { invisibleApiRequest, invisibleApiRequestAllItems } from '../transport';
 
 function buildMediaItems(
@@ -10,32 +17,62 @@ function buildMediaItems(
 	mediaItemsUi: IDataObject[],
 ): IDataObject[] {
 	return mediaItemsUi.map((entry, mediaIndex) => {
-		const sourceUrl = ((entry.sourceUrl as string | undefined) ?? '').trim();
+		const label = `Media item ${mediaIndex + 1}`;
+		const sourceUrl = toTrimmedString(entry.sourceUrl);
 		if (sourceUrl === '') {
-			throw new NodeOperationError(
-				this.getNode(),
-				`Media item ${mediaIndex + 1} is missing a source URL`,
-				{ itemIndex },
-			);
+			throw new NodeOperationError(this.getNode(), `${label} is missing a source URL`, {
+				itemIndex,
+			});
 		}
 
+		assertMaxLength(
+			this.getNode(),
+			sourceUrl,
+			API_MAX_LENGTHS.sourceUrl,
+			`${label} source URL`,
+			itemIndex,
+		);
+		assertHttpUrl(this.getNode(), sourceUrl, `${label} source URL`, itemIndex);
+
 		const mediaItem: IDataObject = {
-			mediaType: (entry.mediaType as string | undefined) ?? 'image',
+			mediaType: toTrimmedString(entry.mediaType) || 'image',
 			sourceUrl,
 		};
 
-		const publicFetchUrl = ((entry.publicFetchUrl as string | undefined) ?? '').trim();
+		const publicFetchUrl = toTrimmedString(entry.publicFetchUrl);
 		if (publicFetchUrl !== '') {
+			assertMaxLength(
+				this.getNode(),
+				publicFetchUrl,
+				API_MAX_LENGTHS.publicFetchUrl,
+				`${label} public fetch URL`,
+				itemIndex,
+			);
+			assertHttpUrl(this.getNode(), publicFetchUrl, `${label} public fetch URL`, itemIndex);
 			mediaItem.publicFetchUrl = publicFetchUrl;
 		}
 
-		const altText = (entry.altText as string | undefined) ?? '';
+		const altText = toTrimmedString(entry.altText);
 		if (altText !== '') {
+			assertMaxLength(
+				this.getNode(),
+				altText,
+				API_MAX_LENGTHS.altText,
+				`${label} alt text`,
+				itemIndex,
+			);
 			mediaItem.altText = altText;
 		}
 
-		const sourceAssetId = ((entry.sourceAssetId as string | undefined) ?? '').trim();
+		const sourceAssetId = toTrimmedString(entry.sourceAssetId);
 		if (sourceAssetId !== '') {
+			assertMaxLength(
+				this.getNode(),
+				sourceAssetId,
+				API_MAX_LENGTHS.sourceAssetId,
+				`${label} source asset ID`,
+				itemIndex,
+			);
 			mediaItem.sourceAssetId = sourceAssetId;
 		}
 
@@ -58,10 +95,10 @@ function parseMetadata(
 		return undefined;
 	}
 
-	let metadata: IDataObject;
+	let metadata: unknown = value;
 	if (typeof value === 'string') {
 		try {
-			metadata = jsonParse<IDataObject>(value);
+			metadata = jsonParse<unknown>(value);
 		} catch {
 			throw new NodeOperationError(
 				this.getNode(),
@@ -69,15 +106,21 @@ function parseMetadata(
 				{ itemIndex },
 			);
 		}
-	} else {
-		metadata = value as IDataObject;
 	}
 
-	if (Object.keys(metadata).length === 0) {
-		return undefined;
+	// A JSON array or scalar passes the API's loose type check and is stored as
+	// unusable metadata.
+	if (metadata === null || typeof metadata !== 'object' || Array.isArray(metadata)) {
+		throw new NodeOperationError(
+			this.getNode(),
+			`Metadata of media item ${mediaIndex + 1} must be a JSON object`,
+			{ itemIndex },
+		);
 	}
 
-	return metadata;
+	const parsed = metadata as IDataObject;
+
+	return Object.keys(parsed).length === 0 ? undefined : parsed;
 }
 
 export async function executePublishJob(
@@ -85,8 +128,13 @@ export async function executePublishJob(
 	operation: string,
 	itemIndex: number,
 ): Promise<IDataObject[]> {
-	const organizationId = this.getNodeParameter('organizationId', itemIndex) as string;
-	const basePath = `/api/v1/organizations/${organizationId}/publishing/jobs`;
+	const organizationId = requireValue(
+		this.getNode(),
+		toTrimmedString(this.getNodeParameter('organizationId', itemIndex)),
+		'Organization',
+		itemIndex,
+	);
+	const basePath = `/api/v1/organizations/${encodeURIComponent(organizationId)}/publishing/jobs`;
 
 	if (operation === 'create') {
 		const targets = toStringList(this.getNodeParameter('targets', itemIndex, []));
@@ -97,7 +145,7 @@ export async function executePublishJob(
 		}
 
 		const mediaItemsUi = this.getNodeParameter('mediaItems.item', itemIndex, []) as IDataObject[];
-		const caption = this.getNodeParameter('caption', itemIndex, '') as string;
+		const caption = String(this.getNodeParameter('caption', itemIndex, '') ?? '');
 
 		// The API allows text-only posts on X but requires media for Instagram;
 		// an entirely empty post is invalid everywhere, so catch that early.
@@ -117,7 +165,9 @@ export async function executePublishJob(
 			targets,
 		};
 
-		if (caption !== '') {
+		// Sent untrimmed so intentional leading or trailing line breaks survive.
+		if (caption.trim() !== '') {
+			assertMaxLength(this.getNode(), caption, API_MAX_LENGTHS.caption, 'Caption', itemIndex);
 			body.caption = caption;
 		}
 
@@ -125,17 +175,36 @@ export async function executePublishJob(
 			body.mediaItems = buildMediaItems.call(this, itemIndex, mediaItemsUi);
 		}
 
-		const firstComment = ((additionalFields.firstComment as string | undefined) ?? '').trim();
+		const firstComment = toTrimmedString(additionalFields.firstComment);
 		if (firstComment !== '') {
+			assertMaxLength(
+				this.getNode(),
+				firstComment,
+				API_MAX_LENGTHS.firstComment,
+				'First comment',
+				itemIndex,
+			);
 			body.firstComment = firstComment;
 		}
 
-		const clientRequestId = ((additionalFields.clientRequestId as string | undefined) ?? '').trim();
+		const clientRequestId = toTrimmedString(additionalFields.clientRequestId);
 		if (clientRequestId !== '') {
+			assertMaxLength(
+				this.getNode(),
+				clientRequestId,
+				API_MAX_LENGTHS.clientRequestId,
+				'Client request ID',
+				itemIndex,
+			);
 			body.clientRequestId = clientRequestId;
 		}
 
-		const requestedPublishAt = (additionalFields.requestedPublishAt as string | undefined) ?? '';
+		const requestedPublishAt = toAtomTimestamp(
+			this.getNode(),
+			additionalFields.requestedPublishAt,
+			'Requested publish at',
+			itemIndex,
+		);
 		if (requestedPublishAt !== '') {
 			body.requestedPublishAt = requestedPublishAt;
 		}
@@ -146,24 +215,34 @@ export async function executePublishJob(
 	}
 
 	if (operation === 'get') {
-		const publishJobId = this.getNodeParameter('publishJobId', itemIndex) as string;
+		const publishJobId = requireValue(
+			this.getNode(),
+			toTrimmedString(this.getNodeParameter('publishJobId', itemIndex)),
+			'Publish job ID',
+			itemIndex,
+		);
 
 		const response = (await invisibleApiRequest.call(
 			this,
 			'GET',
-			`${basePath}/${publishJobId}`,
+			`${basePath}/${encodeURIComponent(publishJobId)}`,
 		)) as IDataObject;
 
 		return [response];
 	}
 
 	if (operation === 'retry') {
-		const publishJobId = this.getNodeParameter('publishJobId', itemIndex) as string;
+		const publishJobId = requireValue(
+			this.getNode(),
+			toTrimmedString(this.getNodeParameter('publishJobId', itemIndex)),
+			'Publish job ID',
+			itemIndex,
+		);
 
 		const response = (await invisibleApiRequest.call(
 			this,
 			'POST',
-			`${basePath}/${publishJobId}/retry`,
+			`${basePath}/${encodeURIComponent(publishJobId)}/retry`,
 		)) as IDataObject;
 
 		return [response];
