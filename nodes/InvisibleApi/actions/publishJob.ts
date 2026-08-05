@@ -1,6 +1,7 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
-import { NodeOperationError, jsonParse } from 'n8n-workflow';
+import { NodeOperationError } from 'n8n-workflow';
 
+import { AUTO_MEDIA_TYPE, inferMediaTypeFromUrl } from '../helpers/media';
 import { toStringList, toTrimmedString } from '../helpers/parameters';
 import {
 	API_MAX_LENGTHS,
@@ -20,7 +21,7 @@ function buildMediaItems(
 		const label = `Media item ${mediaIndex + 1}`;
 		const sourceUrl = toTrimmedString(entry.sourceUrl);
 		if (sourceUrl === '') {
-			throw new NodeOperationError(this.getNode(), `${label} is missing a source URL`, {
+			throw new NodeOperationError(this.getNode(), `${label} is missing a media URL`, {
 				itemIndex,
 			});
 		}
@@ -29,28 +30,23 @@ function buildMediaItems(
 			this.getNode(),
 			sourceUrl,
 			API_MAX_LENGTHS.sourceUrl,
-			`${label} source URL`,
+			`${label} media URL`,
 			itemIndex,
 		);
-		assertHttpUrl(this.getNode(), sourceUrl, `${label} source URL`, itemIndex);
+		assertHttpUrl(this.getNode(), sourceUrl, `${label} media URL`, itemIndex);
+
+		const configuredMediaType = toTrimmedString(entry.mediaType).toLowerCase();
 
 		const mediaItem: IDataObject = {
-			mediaType: toTrimmedString(entry.mediaType) || 'image',
+			mediaType:
+				configuredMediaType === '' || configuredMediaType === AUTO_MEDIA_TYPE
+					? inferMediaTypeFromUrl(sourceUrl)
+					: configuredMediaType,
+			// The API requires sourceUrl and treats publicFetchUrl as an override;
+			// the dashboard submits the one URL it collects as both, so match it.
 			sourceUrl,
+			publicFetchUrl: sourceUrl,
 		};
-
-		const publicFetchUrl = toTrimmedString(entry.publicFetchUrl);
-		if (publicFetchUrl !== '') {
-			assertMaxLength(
-				this.getNode(),
-				publicFetchUrl,
-				API_MAX_LENGTHS.publicFetchUrl,
-				`${label} public fetch URL`,
-				itemIndex,
-			);
-			assertHttpUrl(this.getNode(), publicFetchUrl, `${label} public fetch URL`, itemIndex);
-			mediaItem.publicFetchUrl = publicFetchUrl;
-		}
 
 		const altText = toTrimmedString(entry.altText);
 		if (altText !== '') {
@@ -64,63 +60,8 @@ function buildMediaItems(
 			mediaItem.altText = altText;
 		}
 
-		const sourceAssetId = toTrimmedString(entry.sourceAssetId);
-		if (sourceAssetId !== '') {
-			assertMaxLength(
-				this.getNode(),
-				sourceAssetId,
-				API_MAX_LENGTHS.sourceAssetId,
-				`${label} source asset ID`,
-				itemIndex,
-			);
-			mediaItem.sourceAssetId = sourceAssetId;
-		}
-
-		const metadata = parseMetadata.call(this, itemIndex, mediaIndex, entry.metadata);
-		if (metadata !== undefined) {
-			mediaItem.metadata = metadata;
-		}
-
 		return mediaItem;
 	});
-}
-
-function parseMetadata(
-	this: IExecuteFunctions,
-	itemIndex: number,
-	mediaIndex: number,
-	value: unknown,
-): IDataObject | undefined {
-	if (value === undefined || value === null || value === '') {
-		return undefined;
-	}
-
-	let metadata: unknown = value;
-	if (typeof value === 'string') {
-		try {
-			metadata = jsonParse<unknown>(value);
-		} catch {
-			throw new NodeOperationError(
-				this.getNode(),
-				`Metadata of media item ${mediaIndex + 1} is not valid JSON`,
-				{ itemIndex },
-			);
-		}
-	}
-
-	// A JSON array or scalar passes the API's loose type check and is stored as
-	// unusable metadata.
-	if (metadata === null || typeof metadata !== 'object' || Array.isArray(metadata)) {
-		throw new NodeOperationError(
-			this.getNode(),
-			`Metadata of media item ${mediaIndex + 1} must be a JSON object`,
-			{ itemIndex },
-		);
-	}
-
-	const parsed = metadata as IDataObject;
-
-	return Object.keys(parsed).length === 0 ? undefined : parsed;
 }
 
 export async function executePublishJob(

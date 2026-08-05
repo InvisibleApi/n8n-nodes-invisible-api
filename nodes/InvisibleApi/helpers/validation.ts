@@ -10,8 +10,6 @@ export const API_MAX_LENGTHS = {
 	clientRequestId: 128,
 	firstComment: 5000,
 	metric: 1000,
-	publicFetchUrl: 2048,
-	sourceAssetId: 255,
 	sourceUrl: 2048,
 } as const;
 

@@ -90,8 +90,12 @@ export const publishJobFields: INodeProperties[] = [
 						displayName: 'Media Type',
 						name: 'mediaType',
 						type: 'options',
-						default: 'image',
+						default: 'auto',
 						options: [
+							{
+								name: 'Auto-Detect From URL',
+								value: 'auto',
+							},
 							{
 								name: 'Image',
 								value: 'image',
@@ -101,37 +105,17 @@ export const publishJobFields: INodeProperties[] = [
 								value: 'video',
 							},
 						],
-					},
-					{
-						displayName: 'Metadata',
-						name: 'metadata',
-						type: 'json',
-						default: '{}',
-						description: 'Provider-specific metadata captured for this media item',
-					},
-					{
-						displayName: 'Public Fetch URL',
-						name: 'publicFetchUrl',
-						type: 'string',
-						default: '',
-						placeholder: 'https://cdn.example.com/fetchable.jpg',
 						description:
-							'Provider-ready public URL override. Leave empty to let publishing resolve it from the source URL.',
+							'Detected from the file extension in the Media URL. Set it explicitly when the URL carries no extension, such as a signed CDN link, since detection would otherwise fall back to image.',
 					},
 					{
-						displayName: 'Source Asset ID',
-						name: 'sourceAssetId',
-						type: 'string',
-						default: '',
-						description: 'Your own asset identifier, echoed back on the publish job',
-					},
-					{
-						displayName: 'Source URL',
+						displayName: 'Media URL',
 						name: 'sourceUrl',
 						type: 'string',
 						default: '',
 						placeholder: 'https://storage.example.com/original.jpg',
-						description: 'Original source URL of the media asset. Max 2048 characters.',
+						description:
+							'Publicly reachable URL of the image or video. Max 2048 characters. Sent as both the source URL and the provider fetch URL, matching what the InvisibleAPI dashboard submits.',
 					},
 				],
 			},

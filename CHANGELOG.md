@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+
+- Publish Job → Create media items are down to a Media URL and Alt Text, matching what the InvisibleAPI dashboard actually collects.
+- Media Type is detected from the file extension in the Media URL, using the same rule as the dashboard. It stays available as an explicit Image or Video override, because detection is extension-based and a URL without one — a signed CDN link, say — would otherwise fall back to image and publish a video as a still.
+- Source URL and Public Fetch URL became a single Media URL field, sent as both. The API requires `sourceUrl` and treats `publicFetchUrl` as an override; the dashboard submits its one collected URL as both, and the node now does the same. The field kept its internal name, so an existing workflow's URL carries over. A workflow that deliberately set a Public Fetch URL different from its Source URL will now send the source URL for both.
+- Removed Metadata and Source Asset ID. Neither is reachable in the dashboard — both are hardcoded to null there — and a value set in an existing workflow is no longer sent.
+
 ## 0.5.0
 
 - Social Account → Providers is now a multi-select of Instagram and X instead of a free-text field, so the filter can no longer be defeated by a typo. Selecting several providers keeps accounts matching any of them; leaving it empty still returns all. The endpoint accepts no provider parameter and the node filters the returned list itself, so matching more than one provider costs nothing. Workflows that saved a single provider string keep working unchanged.
