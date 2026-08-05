@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+- Insight → Social Account now lists only Instagram professional accounts. Insights capability is resolved per provider and target type by the API, so X accounts could only ever be picked to produce a conflict error.
+- Insight → Metric became a multi-select of the documented Meta account metrics, replacing free text. Values saved as a comma-separated string by earlier versions still execute unchanged.
+- Insight → Additional Metrics: new optional field for metric names that are not in the multi-select. The API forwards metric names to Meta without validating them, so a metric Meta adds is reachable without waiting for a node release.
+- Insight → Period became a dropdown of `day`, `week`, `days_28` and `lifetime` instead of free text.
+- Insight → Get Instagram Account Insights rejects an empty Period with a node error, matching the existing empty-Metric check, and URL-encodes the organization and social account IDs so an ID carrying `?`, `#` or `..` can no longer rewrite the request path.
+
 ## 0.2.2
 
 - Publish Job → Get Many with "Return All" now fails with a clear error when pagination hits the 1000-page safety cap without reaching the end of the list, instead of silently returning partial data as if it were complete.

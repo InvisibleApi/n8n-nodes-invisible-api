@@ -20,7 +20,11 @@ import {
 	socialAccountFields,
 	socialAccountOperations,
 } from './descriptions/SocialAccountDescription';
-import { getOrganizations, getSocialAccounts } from './methods/loadOptions';
+import {
+	getInstagramSocialAccounts,
+	getOrganizations,
+	getSocialAccounts,
+} from './methods/loadOptions';
 
 type ResourceHandler = (
 	this: IExecuteFunctions,
@@ -85,6 +89,7 @@ export class InvisibleApi implements INodeType {
 
 	methods = {
 		loadOptions: {
+			getInstagramSocialAccounts,
 			getOrganizations,
 			getSocialAccounts,
 		},

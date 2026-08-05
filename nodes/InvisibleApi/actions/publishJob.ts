@@ -1,17 +1,8 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError, jsonParse } from 'n8n-workflow';
 
+import { toStringList } from '../helpers/parameters';
 import { invisibleApiRequest, invisibleApiRequestAllItems } from '../transport';
-
-/**
- * `targets` is a multiOptions field, but an expression may resolve it to a
- * single string or a comma-separated list, so normalise both shapes.
- */
-function toTargetList(value: unknown): string[] {
-	const raw = Array.isArray(value) ? value : String(value ?? '').split(',');
-
-	return raw.map((target) => String(target).trim()).filter((target) => target !== '');
-}
 
 function buildMediaItems(
 	this: IExecuteFunctions,
@@ -98,7 +89,7 @@ export async function executePublishJob(
 	const basePath = `/api/v1/organizations/${organizationId}/publishing/jobs`;
 
 	if (operation === 'create') {
-		const targets = toTargetList(this.getNodeParameter('targets', itemIndex, []));
+		const targets = toStringList(this.getNodeParameter('targets', itemIndex, []));
 		if (targets.length === 0) {
 			throw new NodeOperationError(this.getNode(), 'At least one target is required', {
 				itemIndex,
@@ -111,11 +102,9 @@ export async function executePublishJob(
 		// The API allows text-only posts on X but requires media for Instagram;
 		// an entirely empty post is invalid everywhere, so catch that early.
 		if (mediaItemsUi.length === 0 && caption.trim() === '') {
-			throw new NodeOperationError(
-				this.getNode(),
-				'Provide a caption or at least one media item',
-				{ itemIndex },
-			);
+			throw new NodeOperationError(this.getNode(), 'Provide a caption or at least one media item', {
+				itemIndex,
+			});
 		}
 
 		const additionalFields = this.getNodeParameter(
