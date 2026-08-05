@@ -5,7 +5,10 @@ import { describe, expect, it } from 'vitest';
 import { invisibleApiRequest, invisibleApiRequestAllItems } from '../nodes/InvisibleApi/transport';
 import { testNode } from './fixtures';
 
-function createContext(respond: (options: IHttpRequestOptions) => unknown, baseUrl = 'https://api.example.com') {
+function createContext(
+	respond: (options: IHttpRequestOptions) => unknown,
+	baseUrl = 'https://api.example.com',
+) {
 	const calls: IHttpRequestOptions[] = [];
 	const context = {
 		getCredentials: async () => ({ apiKey: 'key', baseUrl }),
@@ -67,17 +70,54 @@ describe('invisibleApiRequestAllItems', () => {
 		});
 	}
 
-	it('collects pages until an empty page comes back', async () => {
+	it('collects pages until the run of empty pages confirms the end', async () => {
 		const { context, calls } = pagedContext([[{ id: 'a' }], [{ id: 'b' }]]);
 
 		const items = await invisibleApiRequestAllItems.call(context, '/jobs');
 
 		expect(items).toEqual([{ id: 'a' }, { id: 'b' }]);
+		expect(calls).toHaveLength(5);
+	});
+
+	it('keeps paginating past a single empty page', async () => {
+		const { context } = pagedContext([[{ id: 'a' }], [], [{ id: 'b' }]]);
+
+		const items = await invisibleApiRequestAllItems.call(context, '/jobs');
+
+		expect(items.map((item) => item.id)).toEqual(['a', 'b']);
+	});
+
+	it('keeps paginating past two consecutive empty pages', async () => {
+		const { context } = pagedContext([[{ id: 'a' }], [], [], [{ id: 'b' }]]);
+
+		const items = await invisibleApiRequestAllItems.call(context, '/jobs');
+
+		expect(items.map((item) => item.id)).toEqual(['a', 'b']);
+	});
+
+	it('stops without a request storm when the list is empty from the start', async () => {
+		const { context, calls } = pagedContext([]);
+
+		const items = await invisibleApiRequestAllItems.call(context, '/jobs');
+
+		expect(items).toEqual([]);
 		expect(calls).toHaveLength(3);
 	});
 
+	it('stops when the endpoint stops returning a list', async () => {
+		const { context, calls } = createContext(() => ({ message: 'not a list' }));
+
+		const items = await invisibleApiRequestAllItems.call(context, '/jobs');
+
+		expect(items).toEqual([]);
+		expect(calls).toHaveLength(1);
+	});
+
 	it('drops entries already seen on an earlier page', async () => {
-		const { context } = pagedContext([[{ id: 'a' }, { id: 'b' }], [{ id: 'b' }, { id: 'c' }]]);
+		const { context } = pagedContext([
+			[{ id: 'a' }, { id: 'b' }],
+			[{ id: 'b' }, { id: 'c' }],
+		]);
 
 		const items = await invisibleApiRequestAllItems.call(context, '/jobs');
 

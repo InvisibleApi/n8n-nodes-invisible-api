@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.1
+
+- Publish Job → Get Many with "Return All" no longer stops at the first empty page. The API applies the page limit before dropping rows the key's social-account restrictions don't cover — the same quirk 0.2.1 fixed for short pages — so an empty page can sit in front of populated ones. A key restricted to one social account could get an empty list back while jobs existed, reported as a complete result. Pagination now needs three consecutive empty pages to accept the end of the list; the endpoint returns neither a total count nor a `hasMore` flag, so there is no authoritative signal to use instead.
+- Publish Job → Create no longer silently drops media items when the collection is supplied as a single entry rather than a list, which an expression or AI-tool call can do. Neither the "caption or media" check nor the request body saw such a value, so an X post published as text-only while an Instagram post failed at the API. A lone entry is now accepted, and a value that cannot be a media item is rejected by name instead of being read as "no media".
+- A resource of `toString`, `constructor` or `valueOf`, reachable through an expression, is now reported as unsupported. The handler lookup read inherited object properties, so those names resolved to a function and crashed with a `TypeError` instead of the intended message.
+- Publish Job → Get Many clamps the Page option the way 0.7.0 clamped Limit, and rejects a non-numeric value. The editor enforces a 1-based index, but an expression could send `0` or a string.
+- The test suite is now covered by lint, formatting and typechecking, all three wired into CI. It sat outside every check, so nothing could catch a type error in a test file, and three test files had already drifted out of Prettier formatting.
+- `dist/package.json`, a stray copy of the manifest, is no longer published. Listing `package.json` in the tsconfig inputs made TypeScript emit it alongside the compiled node.
+
 ## 0.7.0
 
 - Added a vitest unit-test suite for the pure helpers — base URL normalisation (including a drift test that evaluates the credential-test expression against `normalizeBaseUrl`), timestamp and input validation, API problem extraction, media type inference, and the pagination loop with its dedup and page-cap behaviour. CI runs it between lint and build.

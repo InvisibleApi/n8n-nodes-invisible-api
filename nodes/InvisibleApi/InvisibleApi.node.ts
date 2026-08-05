@@ -41,13 +41,17 @@ type ResourceHandler = (
  * One entry per resource. Adding a provider or feature (Facebook publishing,
  * further social platform integrations, …) means adding a description module, an
  * action module and one line here.
+ *
+ * A Map rather than an object literal: the resource can arrive from an
+ * expression, and an object would resolve `toString` or `constructor` to an
+ * inherited function instead of reporting an unsupported resource.
  */
-const RESOURCE_HANDLERS: Record<string, ResourceHandler> = {
-	organization: executeOrganization,
-	socialAccount: executeSocialAccount,
-	publishJob: executePublishJob,
-	insights: executeInsights,
-};
+const RESOURCE_HANDLERS = new Map<string, ResourceHandler>([
+	['organization', executeOrganization],
+	['socialAccount', executeSocialAccount],
+	['publishJob', executePublishJob],
+	['insights', executeInsights],
+]);
 
 /** Node input problems are already precise; API failures need their field errors promoted. */
 function toNodeError(
@@ -134,7 +138,7 @@ export class InvisibleApi implements INodeType {
 				const resource = this.getNodeParameter('resource', itemIndex) as string;
 				const operation = this.getNodeParameter('operation', itemIndex) as string;
 
-				const handler = RESOURCE_HANDLERS[resource];
+				const handler = RESOURCE_HANDLERS.get(resource);
 				if (handler === undefined) {
 					throw new NodeOperationError(
 						this.getNode(),

@@ -1,7 +1,7 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { toTrimmedString, toUniqueStringList } from '../helpers/parameters';
+import { toStringList, toTrimmedString, toUniqueStringList } from '../helpers/parameters';
 import { API_MAX_LENGTHS, assertMaxLength, requireValue } from '../helpers/validation';
 import { invisibleApiRequest } from '../transport';
 
@@ -35,8 +35,8 @@ export async function executeInsights(
 		// comma-separated `metric` parameter, so they are merged before the
 		// emptiness check — supplying only Additional Metrics is valid.
 		const metrics = toUniqueStringList([
-			...toUniqueStringList(this.getNodeParameter('metric', itemIndex, [])),
-			...toUniqueStringList(additionalFields.additionalMetrics),
+			...toStringList(this.getNodeParameter('metric', itemIndex, [])),
+			...toStringList(additionalFields.additionalMetrics),
 		]);
 
 		if (metrics.length === 0) {

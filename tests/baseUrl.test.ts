@@ -30,6 +30,9 @@ describe('BASE_URL_TEST_EXPRESSION', () => {
 	// The credential test runs this as an n8n expression, outside this module.
 	// Evaluating its body against normalizeBaseUrl pins the two to each other.
 	const body = BASE_URL_TEST_EXPRESSION.match(/^=\{\{ (.*) \}\}$/)?.[1];
+	// The rule targets shipped node code, where this would run on user data; here
+	// the evaluated string is a constant from this repo.
+	// eslint-disable-next-line @n8n/community-nodes/no-dangerous-functions
 	const evaluate = new Function('$credentials', `return ${body};`) as (credentials: {
 		baseUrl?: string;
 	}) => string;
@@ -57,9 +60,7 @@ describe('assertSupportedBaseUrl', () => {
 	});
 
 	it('rejects other schemes', () => {
-		expect(() => assertSupportedBaseUrl(testNode, 'ftp://example.com')).toThrow(
-			NodeOperationError,
-		);
+		expect(() => assertSupportedBaseUrl(testNode, 'ftp://example.com')).toThrow(NodeOperationError);
 	});
 
 	it('rejects values that are not absolute URLs', () => {
