@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- Social Account → Providers is now a multi-select of Instagram and X instead of a free-text field, so the filter can no longer be defeated by a typo. Selecting several providers keeps accounts matching any of them; leaving it empty still returns all. The endpoint accepts no provider parameter and the node filters the returned list itself, so matching more than one provider costs nothing. Workflows that saved a single provider string keep working unchanged.
+- Facebook is deliberately absent from the list: it exists in the API's provider enum, but the social accounts endpoint returns only Instagram and X targets, so offering it would be a filter that always matches nothing.
+
 ## 0.4.1
 
 - Base URL normalisation now has a single source. The rule was written twice — once in TypeScript for node execution and once as an n8n expression for the credential test — and the two had already drifted: a base URL of `///` resolved to the production default in the credential test but to an empty string during execution, sending every request to a relative path. The credential test expression is now generated from the same constants the normaliser uses.
