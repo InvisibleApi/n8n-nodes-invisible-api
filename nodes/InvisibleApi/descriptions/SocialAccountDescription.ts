@@ -29,13 +29,16 @@ export const socialAccountFields: INodeProperties[] = [
 		displayOptions: { show: { resource: ['socialAccount'], operation: ['getAll'] } },
 		options: [
 			{
-				displayName: 'Provider',
+				displayName: 'Providers',
 				name: 'provider',
-				type: 'string',
-				default: '',
-				placeholder: 'instagram or x',
+				type: 'multiOptions',
+				default: [],
+				options: [
+					{ name: 'Instagram', value: 'instagram' },
+					{ name: 'X', value: 'x' },
+				],
 				description:
-					'Keep only accounts for this provider (instagram, x). Filtered on the returned data, since the endpoint itself returns every publishable account.',
+					'Keep only accounts for the selected providers. Leave empty to return all of them. Filtered on the returned data, since the endpoint returns every publishable account and accepts no provider parameter.',
 			},
 		],
 	},

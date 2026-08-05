@@ -1,7 +1,7 @@
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
-import { toTrimmedString } from '../helpers/parameters';
+import { toStringList, toTrimmedString } from '../helpers/parameters';
 import { requireValue } from '../helpers/validation';
 import { invisibleApiRequest } from '../transport';
 
@@ -26,13 +26,17 @@ export async function executeSocialAccount(
 		)) as IDataObject[];
 
 		const accounts = Array.isArray(response) ? response : [response];
-		const provider = toTrimmedString(filters.provider).toLowerCase();
+		// Earlier versions stored a single provider string here; toStringList
+		// reads both that and the current multi-select array.
+		const providers = toStringList(filters.provider).map((entry) => entry.toLowerCase());
 
-		if (provider === '') {
+		if (providers.length === 0) {
 			return accounts;
 		}
 
-		return accounts.filter((account) => String(account.provider ?? '').toLowerCase() === provider);
+		return accounts.filter((account) =>
+			providers.includes(String(account.provider ?? '').toLowerCase()),
+		);
 	}
 
 	throw new NodeOperationError(
