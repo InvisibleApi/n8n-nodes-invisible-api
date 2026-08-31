@@ -66,7 +66,7 @@
     "@n8n/node-cli": "*",
     "@types/node": "^22.0.0",
     "eslint": "9.29.0",
-    "n8n-workflow": "^2.11.0",
+    "n8n-workflow": "^2.36.4",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0",
     "vitest": "^4.1.10"
