@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.0
+
+Synced with the InvisibleAPI backend endpoints published since 0.7.1.
+
+- Publish Job → Cancel: cancels a scheduled job before it dispatches to the provider and releases its publishing-limit reservations. Jobs that already dispatched are rejected by the API with a conflict; cancelling an already cancelled job is idempotent.
+- Organization → Get Limits: lists the effective paid-plan limit snapshots — configured limit, current usage, active reservations, remaining allowance and reset time per connected account — with an optional feature-key filter. Lets a workflow check the remaining allowance before creating publish jobs.
+- Publish Job → Create rejects more than 10 media items up front, matching the cap the API now enforces.
+- The Insights metric list now matches the backend's verified catalog. Removed `profile_views` and `website_clicks` (deprecated — Meta rejects them), `replies` (Meta excludes story replies for accounts in Europe, so it always reported 0), and `follower_count`, `online_followers` and `reached_audience_demographics` (never verified against the Instagram Login host). All remain reachable through Additional Metrics, which the API forwards unvalidated.
+- The Insights Breakdown option gained the demographic dimensions Meta requires for the demographics metrics (`country`, `city`, `age`, `gender`) and dropped `follower_type`, which the Instagram Login host rejects in favour of `follow_type`.
+
 ## 0.7.1
 
 - Publish Job → Get Many with "Return All" no longer stops at the first empty page. The API applies the page limit before dropping rows the key's social-account restrictions don't cover — the same quirk 0.2.1 fixed for short pages — so an empty page can sit in front of populated ones. A key restricted to one social account could get an empty list back while jobs existed, reported as a complete result. Pagination now needs three consecutive empty pages to accept the end of the list; the endpoint returns neither a total count nor a `hasMore` flag, so there is no authoritative signal to use instead.

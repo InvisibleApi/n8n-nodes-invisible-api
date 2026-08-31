@@ -5,6 +5,7 @@ import { AUTO_MEDIA_TYPE, EXPLICIT_MEDIA_TYPES, inferMediaTypeFromUrl } from '..
 import { toStringList, toTrimmedString } from '../helpers/parameters';
 import {
 	API_MAX_LENGTHS,
+	API_MAX_MEDIA_ITEMS,
 	assertHttpUrl,
 	assertMaxLength,
 	requireValue,
@@ -114,6 +115,14 @@ export async function executePublishJob(
 			});
 		}
 
+		if (mediaItemsUi.length > API_MAX_MEDIA_ITEMS) {
+			throw new NodeOperationError(
+				this.getNode(),
+				`The post has ${mediaItemsUi.length} media items, but the API accepts at most ${API_MAX_MEDIA_ITEMS}`,
+				{ itemIndex },
+			);
+		}
+
 		const additionalFields = this.getNodeParameter(
 			'additionalFields',
 			itemIndex,
@@ -190,7 +199,7 @@ export async function executePublishJob(
 		return [response];
 	}
 
-	if (operation === 'retry') {
+	if (operation === 'retry' || operation === 'cancel') {
 		const publishJobId = requireValue(
 			this.getNode(),
 			toTrimmedString(this.getNodeParameter('publishJobId', itemIndex)),
@@ -201,7 +210,7 @@ export async function executePublishJob(
 		const response = (await invisibleApiRequest.call(
 			this,
 			'POST',
-			`${basePath}/${encodeURIComponent(publishJobId)}/retry`,
+			`${basePath}/${encodeURIComponent(publishJobId)}/${operation}`,
 		)) as IDataObject;
 
 		return [response];

@@ -9,6 +9,13 @@ export const publishJobOperations: INodeProperties[] = [
 		displayOptions: { show: { resource: ['publishJob'] } },
 		options: [
 			{
+				name: 'Cancel',
+				value: 'cancel',
+				description:
+					'Cancel a scheduled publish job before it dispatches to the provider and release its publishing-limit reservations. Jobs that already dispatched are rejected; cancelling an already cancelled job succeeds unchanged.',
+				action: 'Cancel a publish job',
+			},
+			{
 				name: 'Create',
 				value: 'create',
 				description: 'Start a publish job for one or more connected accounts',
@@ -72,7 +79,7 @@ export const publishJobFields: INodeProperties[] = [
 		typeOptions: { multipleValues: true, sortable: true },
 		default: {},
 		description:
-			'Media to attach to the post. Instagram requires at least one item; X also accepts text-only posts. X posts with several items support up to 4 images and no videos.',
+			'Media to attach to the post, up to 10 items. Instagram requires at least one item; X also accepts text-only posts. X posts with several items support up to 4 images and no videos.',
 		displayOptions: { show: { resource: ['publishJob'], operation: ['create'] } },
 		options: [
 			{
@@ -157,7 +164,7 @@ export const publishJobFields: INodeProperties[] = [
 		],
 	},
 
-	// ─── get / retry ──────────────────────────────────────────────────────────
+	// ─── get / retry / cancel ─────────────────────────────────────────────────
 	{
 		displayName: 'Publish Job ID',
 		name: 'publishJobId',
@@ -165,7 +172,7 @@ export const publishJobFields: INodeProperties[] = [
 		required: true,
 		default: '',
 		description: 'UUID of the publish job',
-		displayOptions: { show: { resource: ['publishJob'], operation: ['get', 'retry'] } },
+		displayOptions: { show: { resource: ['publishJob'], operation: ['cancel', 'get', 'retry'] } },
 	},
 
 	// ─── getAll ───────────────────────────────────────────────────────────────
