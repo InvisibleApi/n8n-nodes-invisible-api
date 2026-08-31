@@ -3,6 +3,9 @@ import { NodeOperationError } from 'n8n-workflow';
 
 import { toTrimmedString } from './parameters';
 
+/** The API rejects publish jobs carrying more media items than this. */
+export const API_MAX_MEDIA_ITEMS = 10;
+
 /** Length limits the API enforces on its own request DTOs. */
 export const API_MAX_LENGTHS = {
 	altText: 5000,

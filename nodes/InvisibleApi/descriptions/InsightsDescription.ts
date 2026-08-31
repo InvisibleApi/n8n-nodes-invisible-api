@@ -55,7 +55,7 @@ export const insightsFields: INodeProperties[] = [
 		default: 'day',
 		options: INSTAGRAM_PERIOD_OPTIONS,
 		description:
-			'Meta insights period. Which values a metric supports depends on the metric, and Meta ignores the period entirely for Metric Type total_value.',
+			'Meta insights period. Most account metrics use Day; demographics metrics (follower_demographics, engaged_audience_demographics) require Lifetime together with a Timeframe, Metric Type total_value and a demographic Breakdown.',
 		displayOptions: { show: { resource: ['insights'], operation: ['getInstagramAccount'] } },
 	},
 	{
@@ -81,13 +81,16 @@ export const insightsFields: INodeProperties[] = [
 				type: 'options',
 				default: 'media_product_type',
 				options: [
+					{ name: 'Age', value: 'age' },
+					{ name: 'City', value: 'city' },
 					{ name: 'Contact Button Type', value: 'contact_button_type' },
+					{ name: 'Country', value: 'country' },
 					{ name: 'Follow Type', value: 'follow_type' },
-					{ name: 'Follower Type', value: 'follower_type' },
+					{ name: 'Gender', value: 'gender' },
 					{ name: 'Media Product Type', value: 'media_product_type' },
 				],
 				description:
-					'Breakdown dimension for Metric Type total_value results. Which one applies depends on the metric; the API rejects any other value.',
+					'Breakdown dimension for Metric Type total_value results. Which one applies depends on the metric. Demographics metrics require Country, City, Age or Gender. Meta documents a follower_type breakdown for views, but the Instagram Login host only accepts Follow Type.',
 			},
 			{
 				displayName: 'Metric Type',
