@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added a GitHub Actions publish workflow, based on the n8n-nodes-starter one, that publishes the package to npm with a provenance statement whenever a version tag is pushed. n8n requires provenance-signed, GitHub Actions-published packages for community node verification since May 2026. The workflow checks that the tag matches the `package.json` version and runs the test suite before `n8n-node release` lints, builds and publishes.
+- `npm publish` from a local machine is now blocked by the `prepublishOnly` guard (`n8n-node prerelease`); a `release` script runs `n8n-node release`, which the workflow calls. The release process is documented in the README.
+
 ## 0.8.0
 
 Synced with the InvisibleAPI backend endpoints published since 0.7.1.

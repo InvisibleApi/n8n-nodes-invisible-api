@@ -40,7 +40,8 @@
     "format": "prettier nodes credentials tests --write",
     "lint": "eslint nodes credentials tests --ext .ts",
     "lint:fix": "eslint nodes credentials tests --ext .ts --fix",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "n8n-node prerelease",
+    "release": "n8n-node release",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.test.json"
   },

@@ -121,6 +121,25 @@ nodes/InvisibleApi/
 
 Adding a resource means: a description module, an action module, and one line in `RESOURCE_HANDLERS`.
 
+## Releasing
+
+Releases are published to npm by the [Publish workflow](https://github.com/InvisibleApi/n8n-nodes-invisible-api/blob/main/.github/workflows/publish.yml), never from a local machine. The workflow runs `n8n-node release`, which lints, builds and publishes with an [npm provenance statement](https://docs.npmjs.com/generating-provenance-statements) — a requirement for [verified community nodes](https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/) since May 2026. A plain `npm publish` is blocked by the `prepublishOnly` guard.
+
+To cut a release:
+
+1. Bump `version` in `package.json` and add a matching entry to `CHANGELOG.md`.
+2. Merge that change to `main`.
+3. Tag the merge commit with the bare version and push the tag:
+
+   ```bash
+   git tag 0.9.0
+   git push origin 0.9.0
+   ```
+
+The workflow refuses to publish if the tag does not match the `package.json` version. The one-time npm setup (a Trusted Publisher for GitHub Actions, or an `NPM_TOKEN` secret for the first release) is described in the comments at the top of the workflow file.
+
+`n8n-node release` can also drive steps 1–3 locally, but it regenerates `CHANGELOG.md` from commit messages with `auto-changelog`, which would overwrite the hand-written changelog. Bump and tag by hand instead.
+
 ## Resources
 
 | | |
