@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.1
+
+Fixes the Organization field that 0.8.0 hid on every Get Many operation, and widens lint and formatting to the whole package so the gap that let it through is covered.
+
+- The Organization field is shown again for Social Account → Get Many, Publish Job → Get Many and Organization → Get Limits. Hiding it for Organization → Get Many was written as `hide: { resource, operation }`, and n8n hides a parameter when _any_ listed key matches rather than all of them, so every Get Many operation lost the field and failed with "Could not get parameter organizationId". Caught while running the node in a local n8n; a test now checks the field's visibility for every resource and operation.
+- Removed the `overrides` entry from `package.json` — the n8n community-node linter rejects the field, and it only pinned `uuid` for development dependencies that are not part of the published package. The audit finding it cleared is still confined to the `@n8n/node-cli` tooling; CI now runs `npm audit --omit=dev` so a finding that reaches a runtime dependency cannot land silently.
+- `npm run lint` now lints the whole package (`eslint .`), matching `n8n-node lint`. The previous file list skipped `package.json`, which is where the linter's package rules run, so CI could not have flagged the `overrides` field. Prettier covers the whole package the same way (`.prettierignore` leaves out `dist`, the lockfile and Markdown), which reformatted `package.json` to tabs.
+- `@n8n/node-cli` and `@n8n/eslint-plugin-community-nodes` are pinned to caret ranges instead of `*`. An unconstrained `npm install` resolved a `@n8n/node-cli` whose dependency tree requires Node 24, against this package's Node 22 engine.
+- README: the Operations table lists Organization → Get Limits and Publish Job → Cancel, both added in 0.8.0.
+
 ## 0.8.0
 
 Synced with the InvisibleAPI backend endpoints published since 0.7.1.
@@ -9,11 +19,6 @@ Synced with the InvisibleAPI backend endpoints published since 0.7.1.
 - Publish Job → Create rejects more than 10 media items up front, matching the cap the API now enforces.
 - The Insights metric list now matches the backend's verified catalog. Removed `profile_views` and `website_clicks` (deprecated — Meta rejects them), `replies` (Meta excludes story replies for accounts in Europe, so it always reported 0), and `follower_count`, `online_followers` and `reached_audience_demographics` (never verified against the Instagram Login host). All remain reachable through Additional Metrics, which the API forwards unvalidated.
 - The Insights Breakdown option gained the demographic dimensions Meta requires for the demographics metrics (`country`, `city`, `age`, `gender`) and dropped `follower_type`, which the Instagram Login host rejects in favour of `follow_type`.
-- The Organization field is shown again for Social Account → Get Many, Publish Job → Get Many and Organization → Get Limits. Hiding it for Organization → Get Many was written as `hide: { resource, operation }`, and n8n hides a parameter when _any_ listed key matches rather than all of them, so every Get Many operation lost the field and failed with "Could not get parameter organizationId". Caught while running the node in a local n8n; a test now checks the field's visibility for every resource and operation.
-- Removed the `overrides` entry from `package.json` — the n8n community-node linter rejects the field, and it only pinned `uuid` for development dependencies that are not part of the published package. The audit finding it cleared is still confined to the `@n8n/node-cli` tooling; CI now runs `npm audit --omit=dev` so a finding that reaches a runtime dependency cannot land silently.
-- `npm run lint` now lints the whole package (`eslint .`), matching `n8n-node lint`. The previous file list skipped `package.json`, which is where the linter's package rules run, so CI could not have flagged the `overrides` field. Prettier covers the whole package the same way (`.prettierignore` leaves out `dist`, the lockfile and Markdown), which reformatted `package.json` to tabs.
-- `@n8n/node-cli` and `@n8n/eslint-plugin-community-nodes` are pinned to caret ranges instead of `*`. An unconstrained `npm install` resolved a `@n8n/node-cli` whose dependency tree requires Node 24, against this package's Node 22 engine.
-- README: the Operations table lists Organization → Get Limits and Publish Job → Cancel, both added in this release.
 
 ## 0.7.1
 
