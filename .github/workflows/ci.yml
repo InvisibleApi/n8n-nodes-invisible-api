@@ -25,7 +25,10 @@ jobs:
         run: 'npm run lint'
 
       - name: Check formatting
-        run: 'npx prettier --check nodes credentials tests'
+        run: 'npx prettier --check .'
+
+      - name: Audit runtime dependencies
+        run: 'npm audit --omit=dev'
 
       - name: Typecheck
         run: 'npm run typecheck'

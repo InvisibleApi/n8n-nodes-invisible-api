@@ -64,11 +64,13 @@ Full instructions: [n8n community nodes installation guide](https://docs.n8n.io/
 | Resource | Operation | What it does |
 |---|---|---|
 | Organization | Get Many | List the organizations the API key can reach |
+| Organization | Get Limits | List the effective paid-plan limits per connected account — configured limit, usage, reservations, remaining allowance and reset time — with an optional feature-key filter |
 | Social Account | Get Many | List connected accounts usable as publish targets, optionally filtered by provider |
 | Publish Job | Create | Start a publish job for one or more connected accounts, immediately or scheduled |
 | Publish Job | Get | Retrieve a single publish job with its delivery records |
 | Publish Job | Get Many | Retrieve an organization's publish jobs, with paging or **Return All** |
 | Publish Job | Retry | Queue a job's failed deliveries for a safe retry — deliveries that already reached the provider are rejected, so nothing gets posted twice |
+| Publish Job | Cancel | Cancel a scheduled job before it dispatches to the provider and release its publishing-limit reservations |
 | Insight | Get Instagram Account Insights | Fetch Meta account-level insights for a connected Instagram account |
 
 ## Credentials

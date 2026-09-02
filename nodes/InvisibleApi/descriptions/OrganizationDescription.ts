@@ -32,6 +32,7 @@ export const organizationFields: INodeProperties[] = [
 	// Get Many lists organizations, so only Get Limits needs one selected.
 	{
 		...organizationIdField,
+		typeOptions: { ...organizationIdField.typeOptions },
 		displayOptions: { show: { resource: ['organization'], operation: ['getLimits'] } },
 	},
 	{
