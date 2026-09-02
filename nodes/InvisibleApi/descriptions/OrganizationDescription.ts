@@ -1,5 +1,7 @@
 import type { INodeProperties } from 'n8n-workflow';
 
+import { organizationIdField } from './common';
+
 export const organizationOperations: INodeProperties[] = [
 	{
 		displayName: 'Operation',
@@ -27,6 +29,11 @@ export const organizationOperations: INodeProperties[] = [
 ];
 
 export const organizationFields: INodeProperties[] = [
+	// Get Many lists organizations, so only Get Limits needs one selected.
+	{
+		...organizationIdField,
+		displayOptions: { show: { resource: ['organization'], operation: ['getLimits'] } },
+	},
 	{
 		displayName: 'Filters',
 		name: 'filters',

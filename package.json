@@ -38,8 +38,8 @@
     "build": "tsc -p tsconfig.json && cp nodes/InvisibleApi/invisibleApi.svg nodes/InvisibleApi/invisibleApi.dark.svg dist/nodes/InvisibleApi/",
     "dev": "n8n-node dev",
     "format": "prettier nodes credentials tests --write",
-    "lint": "eslint nodes credentials tests --ext .ts",
-    "lint:fix": "eslint nodes credentials tests --ext .ts --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.test.json"
@@ -56,9 +56,6 @@
       "dist/nodes/InvisibleApi/InvisibleApi.node.js"
     ],
     "iconUrl": "file:dist/nodes/InvisibleApi/invisibleApi.svg"
-  },
-  "overrides": {
-    "uuid": "^11.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
