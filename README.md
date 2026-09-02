@@ -127,18 +127,24 @@ Releases are published to npm by the [Publish workflow](https://github.com/Invis
 
 To cut a release:
 
-1. Bump `version` in `package.json` and add a matching entry to `CHANGELOG.md`.
-2. Merge that change to `main`.
-3. Tag the merge commit with the bare version and push the tag:
+1. Bump the version in both `package.json` and `package-lock.json`:
+
+   ```bash
+   npm version 0.9.0 --no-git-tag-version
+   ```
+
+2. In `CHANGELOG.md`, rename the `## Unreleased` heading to `## 0.9.0`.
+3. Merge those changes to `main`.
+4. Tag the merge commit with the bare version and push the tag:
 
    ```bash
    git tag 0.9.0
    git push origin 0.9.0
    ```
 
-The workflow refuses to publish if the tagged commit is not on `main` or the tag does not match the `package.json` version. The one-time npm setup (a Trusted Publisher for GitHub Actions, or an `NPM_TOKEN` secret for the first release) is described in the comments at the top of the workflow file.
+The workflow refuses to publish, before anything is built, if the tagged commit is not on `main`, the tag is not a stable `X.Y.Z` version, the tag does not match the `package.json` version, or `CHANGELOG.md` has no heading for that version. It also verifies afterwards that the version is on npm with a provenance attestation. The one-time npm setup (a Trusted Publisher for GitHub Actions, or an `NPM_TOKEN` secret for the first release) is described in the comments at the top of the workflow file.
 
-`n8n-node release` can also drive steps 1–3 locally, but it regenerates `CHANGELOG.md` from commit messages with `auto-changelog`, which would overwrite the hand-written changelog. Bump and tag by hand instead.
+`n8n-node release` can also drive steps 1–4 locally, but it regenerates `CHANGELOG.md` from commit messages with `auto-changelog`, which would overwrite the hand-written changelog. Bump and tag by hand instead.
 
 ## Resources
 

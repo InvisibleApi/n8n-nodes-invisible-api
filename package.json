@@ -1,7 +1,7 @@
 {
   "name": "n8n-nodes-invisible-api",
   "version": "0.8.0",
-  "description": "n8n community node for the InvisibleAPI — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
+  "description": "n8n community node for the InvisibleAPI \u2014 one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
   "keywords": [
     "n8n-community-node-package",
     "n8n",
@@ -40,6 +40,7 @@
     "format": "prettier nodes credentials tests --write",
     "lint": "eslint nodes credentials tests --ext .ts",
     "lint:fix": "eslint nodes credentials tests --ext .ts --fix",
+    "prepack": "npm run build",
     "prepublishOnly": "n8n-node prerelease",
     "release": "n8n-node release",
     "test": "vitest run",
@@ -63,8 +64,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.29.0",
-    "@n8n/eslint-plugin-community-nodes": "*",
-    "@n8n/node-cli": "*",
+    "@n8n/eslint-plugin-community-nodes": "^0.27.0",
+    "@n8n/node-cli": "^0.41.2",
     "@types/node": "^22.0.0",
     "eslint": "9.29.0",
     "n8n-workflow": "^2.11.0",

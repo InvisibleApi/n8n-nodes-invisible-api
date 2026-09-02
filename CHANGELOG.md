@@ -2,8 +2,9 @@
 
 ## Unreleased
 
-- Added a GitHub Actions publish workflow, based on the n8n-nodes-starter one, that publishes the package to npm with a provenance statement whenever a version tag is pushed. n8n requires provenance-signed, GitHub Actions-published packages for community node verification since May 2026. The workflow checks that the tagged commit is on `main` and that the tag matches the `package.json` version, and runs the test suite, before `n8n-node release` lints, builds and publishes.
-- `npm publish` from a local machine is now blocked by the `prepublishOnly` guard (`n8n-node prerelease`); a `release` script runs `n8n-node release`, which the workflow calls. The release process is documented in the README.
+- Added a GitHub Actions publish workflow, based on the n8n-nodes-starter one, that publishes the package to npm with a provenance statement whenever a stable version tag is pushed. n8n requires provenance-signed, GitHub Actions-published packages for community node verification since May 2026. Before building, the workflow checks that the tagged commit is on `main`, that the tag matches the `package.json` version and that `CHANGELOG.md` has a heading for it, then runs the test suite before `n8n-node release` lints, builds and publishes, and finally confirms the version is on npm with its attestation. The job's toolchain is pinned (Node.js 22, an exact npm 11 release, actions by commit SHA), runs one release at a time and times out instead of holding the publish credentials on a stalled runner.
+- `npm publish` from a local machine is now blocked by the `prepublishOnly` guard (`n8n-node prerelease`); a `prepack` script builds `dist/` on every pack or publish, and a `release` script runs `n8n-node release`, which the workflow calls. The release process is documented in the README.
+- `@n8n/node-cli` and `@n8n/eslint-plugin-community-nodes` moved from a `*` range to caret ranges on the versions the lockfile already pins, since the publish workflow now relies on the CLI's release behaviour.
 
 ## 0.8.0
 

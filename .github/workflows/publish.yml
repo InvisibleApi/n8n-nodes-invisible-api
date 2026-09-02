@@ -45,17 +45,21 @@
 #
 # ─── TAG CONVENTION ────────────────────────────────────────────────────────────
 #
-# This workflow triggers on tags matching "*.*.*" (e.g. 0.8.0). The tagged
-# commit must be on main, and the tag must equal the "version" field in
-# package.json; the workflow refuses to publish otherwise, so an unreviewed
-# branch or a stale package.json can never ship. An npm version cannot be
-# republished once it is out, so both checks run before anything is built.
+# This workflow triggers on bare stable-version tags such as 0.8.0. Prerelease
+# tags (1.0.0-rc.1) are deliberately excluded: `n8n-node release` runs a bare
+# `npm publish`, which npm rejects for a prerelease version without `--tag`.
+#
+# Before anything is installed or built, the workflow checks that the tagged
+# commit is on main, that the tag equals the "version" field in package.json,
+# and that CHANGELOG.md has a heading for that version. An npm version cannot
+# be republished once it is out, so a bad tag must fail before publishing.
 #
 # ─── RELEASE PROCESS ───────────────────────────────────────────────────────────
 #
-# See the "Releasing" section of README.md. In short: bump "version" in
-# package.json, add a CHANGELOG.md entry, merge to main, then tag and push:
+# See the "Releasing" section of README.md. In short:
 #
+#   npm version 0.9.0 --no-git-tag-version   # package.json + package-lock.json
+#   (rename "## Unreleased" in CHANGELOG.md to "## 0.9.0", merge to main)
 #   git tag 0.9.0
 #   git push origin 0.9.0
 
@@ -64,13 +68,22 @@ name: Publish
 on:
   push:
     tags:
-      # Matches 0.1.0, 1.2.3, 2.0.0-rc.1, etc.
-      - '*.*.*'
+      # Stable versions only: 0.1.0, 1.2.3. See "TAG CONVENTION" above.
+      - '[0-9]+.[0-9]+.[0-9]+'
+
+# One release at a time. Two tags pushed back to back queue up instead of
+# racing `npm publish` against the same registry.
+concurrency:
+  group: publish
+  cancel-in-progress: false
 
 jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
+    # A stalled registry call must not hold a runner, and the publish
+    # credentials, for the six-hour default.
+    timeout-minutes: 15
 
     permissions:
       # Required to mint an OIDC token for npm provenance attestation.
@@ -79,7 +92,10 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      # Third-party actions are pinned to commit SHAs: this job holds the npm
+      # credentials and mints the OIDC token that signs the provenance
+      # attestation, so a retagged action must not be able to run here.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           # Full history, so the ancestry check below can see main.
           fetch-depth: 0
@@ -96,24 +112,37 @@ jobs:
           fi
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: 'lts/*'
-          registry-url: 'https://registry.npmjs.org/'
+          # The same version ci.yml tests on, so the release is built by the
+          # toolchain every pull request already exercised.
+          node-version: '22'
+          # No registry-url: it would write a placeholder auth token to .npmrc
+          # that masks OIDC failures behind an opaque E401. Authentication is
+          # handled entirely in the Release step below.
           cache: 'npm'
 
-      - name: Update npm
-        # npm Trusted Publishing (OIDC) needs npm 11.5.1 or newer; the npm
-        # bundled with an LTS Node.js release can lag behind that.
-        run: npm install -g npm@latest
-
-      - name: Check that the tag matches package.json
+      - name: Check that the tag matches package.json and CHANGELOG.md
         run: |
+          if ! printf '%s' "$GITHUB_REF_NAME" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Tag '$GITHUB_REF_NAME' is not a stable version (X.Y.Z). Prerelease versions cannot be published by this workflow."
+            exit 1
+          fi
           PACKAGE_VERSION="$(node -p "require('./package.json').version")"
           if [ "$GITHUB_REF_NAME" != "$PACKAGE_VERSION" ]; then
             echo "::error::Tag '$GITHUB_REF_NAME' does not match package.json version '$PACKAGE_VERSION'."
             exit 1
           fi
+          if ! grep -qxF "## $PACKAGE_VERSION" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## $PACKAGE_VERSION' heading. Rename '## Unreleased' before tagging."
+            exit 1
+          fi
+
+      - name: Update npm
+        # npm Trusted Publishing (OIDC) needs npm 11.5.1 or newer, and Node.js
+        # 22 bundles npm 10. Pinned to an exact version because this job signs
+        # what ends up on the registry; bump it deliberately, never via @latest.
+        run: npm install -g npm@11.19.1
 
       - name: Install dependencies
         run: npm ci
@@ -134,3 +163,22 @@ jobs:
           npm run release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Verify the release is on npm
+        # `n8n-node release` can exit 0 without publishing (a failure to spawn
+        # `npm publish` is reported as exit code 0), so confirm that the version
+        # and its provenance attestation are really on the registry. The retries
+        # cover registry replication lag.
+        run: |
+          PACKAGE_NAME="$(node -p "require('./package.json').name")"
+          for attempt in 1 2 3 4 5 6; do
+            ATTESTATION_URL="$(npm view "$PACKAGE_NAME@$GITHUB_REF_NAME" dist.attestations.url 2>/dev/null || true)"
+            if [ -n "$ATTESTATION_URL" ]; then
+              echo "$PACKAGE_NAME@$GITHUB_REF_NAME is on npm with provenance: $ATTESTATION_URL"
+              exit 0
+            fi
+            echo "Not visible on the registry yet (attempt $attempt of 6), retrying in 10s."
+            sleep 10
+          done
+          echo "::error::$PACKAGE_NAME@$GITHUB_REF_NAME is not on npm with a provenance attestation. Check the Release step output."
+          exit 1
