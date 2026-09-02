@@ -136,7 +136,7 @@ To cut a release:
    git push origin 0.9.0
    ```
 
-The workflow refuses to publish if the tag does not match the `package.json` version. The one-time npm setup (a Trusted Publisher for GitHub Actions, or an `NPM_TOKEN` secret for the first release) is described in the comments at the top of the workflow file.
+The workflow refuses to publish if the tagged commit is not on `main` or the tag does not match the `package.json` version. The one-time npm setup (a Trusted Publisher for GitHub Actions, or an `NPM_TOKEN` secret for the first release) is described in the comments at the top of the workflow file.
 
 `n8n-node release` can also drive steps 1–3 locally, but it regenerates `CHANGELOG.md` from commit messages with `auto-changelog`, which would overwrite the hand-written changelog. Bump and tag by hand instead.
 
