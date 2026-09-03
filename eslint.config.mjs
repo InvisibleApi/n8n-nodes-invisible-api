@@ -12,4 +12,15 @@ export default [
 			: entry,
 	),
 	{ files: ['**/*.ts', 'package.json'], ignores, rules },
+	{
+		files: ['package.json'],
+		rules: {
+			// The overrides field pins qs and uuid to patched releases that their
+			// dev-only parents (@n8n/backend-network, @langchain/*) cannot reach
+			// in-range. Runtime ships no dependencies, so the field affects the
+			// dev toolchain only. Drop the overrides and this exception once the
+			// parents update.
+			'@n8n/community-nodes/no-overrides-field': 'off',
+		},
+	},
 ];
