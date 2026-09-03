@@ -54,7 +54,7 @@ Full instructions: [n8n community nodes installation guide](https://docs.n8n.io/
 👥 InvisibleAPI: Social Account → Get Many (provider = Instagram)
   ↓
 📈 InvisibleAPI: Insight → Get Instagram Account Insights
-     (metrics: reach, follower_count · period: week)
+     (metrics: reach, total_interactions · period: week)
   ↓
 📄 Google Sheets: append row   →   💬 Slack: post the summary
 ```
@@ -92,10 +92,10 @@ Behaviour that will bite you otherwise:
 - **What a post may contain depends on the target.** Instagram requires at least one media item — image, video, or several for a carousel. X also accepts text-only posts, caps text at 280 characters, and allows either up to 4 images (no videos) or a single video. Content a provider can't publish is rejected with a validation error before any delivery starts.
 - **`Client Request ID` is an idempotency key.** Reuse the same value when retrying a failed run; send a new value when you deliberately want to publish identical content again.
 - **Retry is deliberately conservative.** It only requeues deliveries it can prove never reached the provider, and answers with a conflict error when nothing about the job is safely retryable.
-- **Some Meta metrics need `total_value`.** `accounts_engaged`, `total_interactions`, `likes` and friends are silently omitted from time-series responses — set **Metric Type** to `total_value` to get them.
+- **Some Meta metrics need `total_value`.** `accounts_engaged`, `total_interactions`, `likes` and friends are silently omitted from time-series responses. **Metric Type** defaults to `total_value` for that reason — switching it to `time_series` drops them with no error.
 - **Demographics metrics need `Timeframe`.** `follower_demographics` and `engaged_audience_demographics` require it, and Meta gives it precedence over **Since** and **Until**.
 
-**Metric** takes one metric or a comma-separated list. **Period** is a Meta period such as `day`, `week`, `days_28` or `lifetime`.
+**Metrics** is a multi-select of the metrics the backend has verified. **Additional Metrics** takes a comma-separated list for anything outside it, forwarded to Meta unvalidated. **Period** is a Meta period: `day`, `week`, `days_28` or `lifetime`.
 
 ## Compatibility
 
@@ -105,9 +105,12 @@ Requires n8n with community node support and Node.js 22 or newer.
 
 ```bash
 npm install
-npm run lint
+npm run lint       # eslint over the whole package, package.json included
+npm run format     # prettier over the whole package
+npm run typecheck
+npm test
 npm run build
-npm run dev      # runs the node against a local n8n
+npm run dev        # runs the node against a local n8n
 ```
 
 The node is organised so new providers and features slot in without touching what exists:
@@ -118,7 +121,7 @@ nodes/InvisibleApi/
   descriptions/              # UI parameters, one module per resource
   actions/                   # request building, one module per resource
   methods/loadOptions.ts     # dynamic dropdowns
-  transport/index.ts         # auth, base URL and pagination
+  transport/                 # auth, base URL and pagination
 ```
 
 Adding a resource means: a description module, an action module, and one line in `RESOURCE_HANDLERS`.
@@ -135,7 +138,7 @@ To cut a release:
    npm version 0.9.0 --no-git-tag-version
    ```
 
-2. In `CHANGELOG.md`, rename the `## Unreleased` heading to `## 0.9.0`.
+2. In `CHANGELOG.md`, rename the `## Unreleased` heading to `## 0.9.0` (or add the heading if the release has no Unreleased section yet).
 3. Merge those changes to `main`.
 4. Tag the merge commit with the bare version and push the tag:
 
