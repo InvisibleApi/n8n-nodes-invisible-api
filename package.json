@@ -62,6 +62,10 @@
 		],
 		"iconUrl": "file:dist/nodes/InvisibleApi/invisibleApi.svg"
 	},
+	"overrides": {
+		"qs": "^6.16.0",
+		"uuid": "^11.1.1"
+	},
 	"devDependencies": {
 		"@eslint/js": "^9.29.0",
 		"@n8n/eslint-plugin-community-nodes": "^0.27.0",
