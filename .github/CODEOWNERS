@@ -1,0 +1,5 @@
+# Every pull request needs a review from one of these people.
+# Requires "Require review from Code Owners" on the main branch rule to have effect.
+# Owners must keep write access to this repository, or their entry is ignored.
+
+* @dejandim @esfilip @ivana-embedsocial @OlegVasilevEs
