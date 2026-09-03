@@ -46,9 +46,7 @@ parameters in `descriptions/`.
   takes a review and passing CI.
 - **One concern per PR.** A bug fix and a new operation are two pull requests.
 - **Tests.** The helpers under `nodes/InvisibleApi/helpers/` and `transport/`
-  are unit-tested in `tests/` — a change there needs a test. A UI-visibility bug
-  belongs in `tests/description.test.ts`, which is what caught the field that
-  `0.8.0` hid.
+  are unit-tested in `tests/` — a change there needs a test.
 - **CHANGELOG.md.** Add a new `##` section at the top for your batch of work,
   and describe what changed and why it mattered. Do not append to the section
   above yours, even if it is unreleased.
