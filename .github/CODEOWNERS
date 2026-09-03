@@ -2,11 +2,4 @@
 # Requires "Require review from Code Owners" on the main branch rule to have effect.
 # Owners must keep write access to this repository, or their entry is ignored.
 
-*                       @dejandim @esfilip @ivana-embedsocial @OlegVasilevEs
-
-# Paths where a mistake publishes to npm, leaks the token, or changes how the
-# API key is handled. Narrowed to the accounts that hold the release setup.
-/.github/workflows/     @esfilip @ivana-embedsocial
-/credentials/           @esfilip @ivana-embedsocial
-/package.json           @esfilip @ivana-embedsocial
-/package-lock.json      @esfilip @ivana-embedsocial
+* @dejandim @esfilip @ivana-embedsocial @OlegVasilevEs
