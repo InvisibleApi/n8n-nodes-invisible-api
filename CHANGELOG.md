@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.8.1
+
+Fixes the Organization field that 0.8.0 hid on every Get Many operation, and widens lint and formatting to the whole package so the gap that let it through is covered.
+
+- The Organization field is shown again for Social Account → Get Many, Publish Job → Get Many and Organization → Get Limits. Hiding it for Organization → Get Many was written as `hide: { resource, operation }`, and n8n hides a parameter when _any_ listed key matches rather than all of them, so every Get Many operation lost the field and failed with "Could not get parameter organizationId". Caught while running the node in a local n8n; a test now checks the field's visibility for every resource and operation.
+- Removed the `overrides` entry from `package.json` — the n8n community-node linter rejects the field, and it only pinned `uuid` for development dependencies that are not part of the published package. The audit finding it cleared is still confined to the `@n8n/node-cli` tooling; CI now runs `npm audit --omit=dev` so a finding that reaches a runtime dependency cannot land silently.
+- `npm run lint` now lints the whole package (`eslint .`), matching `n8n-node lint`. The previous file list skipped `package.json`, which is where the linter's package rules run, so CI could not have flagged the `overrides` field. Prettier covers the whole package the same way (`.prettierignore` leaves out `dist`, the lockfile, Markdown and the local `.claude` directory, which Prettier would otherwise reformat because it reads only the repository's `.gitignore`), which reformatted `package.json` to tabs.
+- `@n8n/node-cli` and `@n8n/eslint-plugin-community-nodes` are pinned to caret ranges instead of `*`. An unconstrained `npm install` resolved a `@n8n/node-cli` whose dependency tree requires Node 24, against this package's Node 22 engine. `eslint.config.mjs` now registers the pinned `@n8n/eslint-plugin-community-nodes` and its rule set: `@n8n/node-cli` depends on an exact older version and registers that nested copy, so the pin alone left the newer rules unused.
+- README: the Operations table lists Organization → Get Limits and Publish Job → Cancel, both added in 0.8.0.
+
 ## 0.8.0
 
 Synced with the InvisibleAPI backend endpoints published since 0.7.1.
