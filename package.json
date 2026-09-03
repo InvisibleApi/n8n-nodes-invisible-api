@@ -40,7 +40,9 @@
 		"format": "prettier . --write",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
-		"prepublishOnly": "npm run build",
+		"prepack": "npm run build",
+		"prepublishOnly": "n8n-node prerelease",
+		"release": "n8n-node release",
 		"test": "vitest run",
 		"typecheck": "tsc -p tsconfig.test.json"
 	},
