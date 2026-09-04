@@ -66,122 +66,122 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      # Stable versions only: 0.1.0, 1.2.3. See "TAG CONVENTION" above.
-      - '[0-9]+.[0-9]+.[0-9]+'
+    push:
+        tags:
+            # Stable versions only: 0.1.0, 1.2.3. See "TAG CONVENTION" above.
+            - '[0-9]+.[0-9]+.[0-9]+'
 
 # One release at a time. Two tags pushed back to back queue up instead of
 # racing `npm publish` against the same registry.
 concurrency:
-  group: publish
-  cancel-in-progress: false
+    group: publish
+    cancel-in-progress: false
 
 jobs:
-  publish:
-    name: Publish to npm
-    runs-on: ubuntu-latest
-    # A stalled registry call must not hold a runner, and the publish
-    # credentials, for the six-hour default.
-    timeout-minutes: 15
+    publish:
+        name: Publish to npm
+        runs-on: ubuntu-latest
+        # A stalled registry call must not hold a runner, and the publish
+        # credentials, for the six-hour default.
+        timeout-minutes: 15
 
-    permissions:
-      # Required to mint an OIDC token for npm provenance attestation.
-      id-token: write
-      # Scoped down from the default (write) for least-privilege publishing.
-      contents: read
+        permissions:
+            # Required to mint an OIDC token for npm provenance attestation.
+            id-token: write
+            # Scoped down from the default (write) for least-privilege publishing.
+            contents: read
 
-    steps:
-      # Third-party actions are pinned to commit SHAs: this job holds the npm
-      # credentials and mints the OIDC token that signs the provenance
-      # attestation, so a retagged action must not be able to run here.
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
-        with:
-          # Full history, so the ancestry check below can see main.
-          fetch-depth: 0
+        steps:
+            # Third-party actions are pinned to commit SHAs: this job holds the npm
+            # credentials and mints the OIDC token that signs the provenance
+            # attestation, so a retagged action must not be able to run here.
+            - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+              with:
+                  # Full history, so the ancestry check below can see main.
+                  fetch-depth: 0
 
-      - name: Check that the tagged commit is on main
-        # Only commits that were merged into main may be released. Without
-        # this, a version tag pushed from a feature branch would publish an
-        # unreviewed commit under a version that can never be republished.
-        run: |
-          git fetch --no-tags origin main
-          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
-            echo "::error::Tag '$GITHUB_REF_NAME' points at $GITHUB_SHA, which is not on main. Merge first, then tag the merge commit."
-            exit 1
-          fi
+            - name: Check that the tagged commit is on main
+              # Only commits that were merged into main may be released. Without
+              # this, a version tag pushed from a feature branch would publish an
+              # unreviewed commit under a version that can never be republished.
+              run: |
+                  git fetch --no-tags origin main
+                  if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+                    echo "::error::Tag '$GITHUB_REF_NAME' points at $GITHUB_SHA, which is not on main. Merge first, then tag the merge commit."
+                    exit 1
+                  fi
 
-      - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        with:
-          # The same version ci.yml tests on, so the release is built by the
-          # toolchain every pull request already exercised.
-          node-version: '22'
-          # No registry-url: it would write a placeholder auth token to .npmrc
-          # that masks OIDC failures behind an opaque E401. Authentication is
-          # handled entirely in the Release step below.
-          cache: 'npm'
+            - name: Set up Node.js
+              uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+              with:
+                  # The same version ci.yml tests on, so the release is built by the
+                  # toolchain every pull request already exercised.
+                  node-version: '22'
+                  # No registry-url: it would write a placeholder auth token to .npmrc
+                  # that masks OIDC failures behind an opaque E401. Authentication is
+                  # handled entirely in the Release step below.
+                  cache: 'npm'
 
-      - name: Check that the tag matches package.json and CHANGELOG.md
-        run: |
-          if ! printf '%s' "$GITHUB_REF_NAME" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Tag '$GITHUB_REF_NAME' is not a stable version (X.Y.Z). Prerelease versions cannot be published by this workflow."
-            exit 1
-          fi
-          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
-          if [ "$GITHUB_REF_NAME" != "$PACKAGE_VERSION" ]; then
-            echo "::error::Tag '$GITHUB_REF_NAME' does not match package.json version '$PACKAGE_VERSION'."
-            exit 1
-          fi
-          if ! grep -qxF "## $PACKAGE_VERSION" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no '## $PACKAGE_VERSION' heading. Rename '## Unreleased' before tagging."
-            exit 1
-          fi
+            - name: Check that the tag matches package.json and CHANGELOG.md
+              run: |
+                  if ! printf '%s' "$GITHUB_REF_NAME" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+                    echo "::error::Tag '$GITHUB_REF_NAME' is not a stable version (X.Y.Z). Prerelease versions cannot be published by this workflow."
+                    exit 1
+                  fi
+                  PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+                  if [ "$GITHUB_REF_NAME" != "$PACKAGE_VERSION" ]; then
+                    echo "::error::Tag '$GITHUB_REF_NAME' does not match package.json version '$PACKAGE_VERSION'."
+                    exit 1
+                  fi
+                  if ! grep -qxF "## $PACKAGE_VERSION" CHANGELOG.md; then
+                    echo "::error::CHANGELOG.md has no '## $PACKAGE_VERSION' heading. Rename '## Unreleased' before tagging."
+                    exit 1
+                  fi
 
-      - name: Update npm
-        # npm Trusted Publishing (OIDC) needs npm 11.5.1 or newer, and Node.js
-        # 22 bundles npm 10. Pinned to an exact version because this job signs
-        # what ends up on the registry; bump it deliberately, never via @latest.
-        # Same version as ci.yml; regenerate package-lock.json with this
-        # version too (npm ≤11.6 writes lockfiles its own ci rejects when
-        # package.json has overrides).
-        run: npm install -g npm@11.19.1
+            - name: Update npm
+              # npm Trusted Publishing (OIDC) needs npm 11.5.1 or newer, and Node.js
+              # 22 bundles npm 10. Pinned to an exact version because this job signs
+              # what ends up on the registry; bump it deliberately, never via @latest.
+              # Same version as ci.yml; regenerate package-lock.json with this
+              # version too (npm ≤11.6 writes lockfiles its own ci rejects when
+              # package.json has overrides).
+              run: npm install -g npm@11.19.1
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Run tests
-        run: npm test
+            - name: Run tests
+              run: npm test
 
-      - name: Release
-        # Publishes to npm with a provenance attestation (requires id-token: write above).
-        # Lint and build run automatically as part of the release process.
-        #
-        # Option A (OIDC): leave NPM_TOKEN unset — the token step is skipped and
-        #   npm uses the OIDC exchange instead.
-        # Option B (token): set NPM_TOKEN in repo secrets — it is written to
-        #   .npmrc here before publishing.
-        run: |
-          [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          npm run release
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+            - name: Release
+              # Publishes to npm with a provenance attestation (requires id-token: write above).
+              # Lint and build run automatically as part of the release process.
+              #
+              # Option A (OIDC): leave NPM_TOKEN unset — the token step is skipped and
+              #   npm uses the OIDC exchange instead.
+              # Option B (token): set NPM_TOKEN in repo secrets — it is written to
+              #   .npmrc here before publishing.
+              run: |
+                  [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+                  npm run release
+              env:
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-      - name: Verify the release is on npm
-        # `n8n-node release` can exit 0 without publishing (a failure to spawn
-        # `npm publish` is reported as exit code 0), so confirm that the version
-        # and its provenance attestation are really on the registry. The retries
-        # cover registry replication lag.
-        run: |
-          PACKAGE_NAME="$(node -p "require('./package.json').name")"
-          for attempt in 1 2 3 4 5 6; do
-            ATTESTATION_URL="$(npm view "$PACKAGE_NAME@$GITHUB_REF_NAME" dist.attestations.url 2>/dev/null || true)"
-            if [ -n "$ATTESTATION_URL" ]; then
-              echo "$PACKAGE_NAME@$GITHUB_REF_NAME is on npm with provenance: $ATTESTATION_URL"
-              exit 0
-            fi
-            echo "Not visible on the registry yet (attempt $attempt of 6), retrying in 10s."
-            sleep 10
-          done
-          echo "::error::$PACKAGE_NAME@$GITHUB_REF_NAME is not on npm with a provenance attestation. Check the Release step output."
-          exit 1
+            - name: Verify the release is on npm
+              # `n8n-node release` can exit 0 without publishing (a failure to spawn
+              # `npm publish` is reported as exit code 0), so confirm that the version
+              # and its provenance attestation are really on the registry. The retries
+              # cover registry replication lag.
+              run: |
+                  PACKAGE_NAME="$(node -p "require('./package.json').name")"
+                  for attempt in 1 2 3 4 5 6; do
+                    ATTESTATION_URL="$(npm view "$PACKAGE_NAME@$GITHUB_REF_NAME" dist.attestations.url 2>/dev/null || true)"
+                    if [ -n "$ATTESTATION_URL" ]; then
+                      echo "$PACKAGE_NAME@$GITHUB_REF_NAME is on npm with provenance: $ATTESTATION_URL"
+                      exit 0
+                    fi
+                    echo "Not visible on the registry yet (attempt $attempt of 6), retrying in 10s."
+                    sleep 10
+                  done
+                  echo "::error::$PACKAGE_NAME@$GITHUB_REF_NAME is not on npm with a provenance attestation. Check the Release step output."
+                  exit 1

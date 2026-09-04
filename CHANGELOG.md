@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+Adopts the shared TypeScript coding standards; no behaviour change.
+
+- Prettier now formats to 4-space indentation (spaces instead of tabs), 120-character lines and no trailing commas; the whole package is reformatted to match. Single quotes and semicolons were already in force and stay as they were.
+- No code changes beyond formatting — the standards' other rules (explicit return types on exported functions, no `enum`, no `any`, no `console.*`) were audited and the codebase already complies.
+
 ## 0.8.1
 
 Fixes the Organization field that 0.8.0 hid on every Get Many operation, widens lint and formatting to the whole package so the gap that let it through is covered, and adds the GitHub Actions workflow that publishes this version to npm.

@@ -8,21 +8,21 @@ export const API_MAX_MEDIA_ITEMS = 10;
 
 /** Length limits the API enforces on its own request DTOs. */
 export const API_MAX_LENGTHS = {
-	altText: 5000,
-	caption: 5000,
-	clientRequestId: 128,
-	firstComment: 5000,
-	metric: 1000,
-	sourceUrl: 2048,
+    altText: 5000,
+    caption: 5000,
+    clientRequestId: 128,
+    firstComment: 5000,
+    metric: 1000,
+    sourceUrl: 2048
 } as const;
 
 /** Required fields are enforced by the editor UI, which expressions bypass. */
 export function requireValue(node: INode, value: string, label: string, itemIndex: number): string {
-	if (value === '') {
-		throw new NodeOperationError(node, `${label} is required`, { itemIndex });
-	}
+    if (value === '') {
+        throw new NodeOperationError(node, `${label} is required`, { itemIndex });
+    }
 
-	return value;
+    return value;
 }
 
 /**
@@ -31,19 +31,19 @@ export function requireValue(node: INode, value: string, label: string, itemInde
  * page the API allows, the first page — is unambiguous.
  */
 export function toBoundedInteger(
-	node: INode,
-	value: unknown,
-	label: string,
-	itemIndex: number,
-	min: number,
-	max: number = Number.MAX_SAFE_INTEGER,
+    node: INode,
+    value: unknown,
+    label: string,
+    itemIndex: number,
+    min: number,
+    max: number = Number.MAX_SAFE_INTEGER
 ): number {
-	const parsed = Number(value);
-	if (!Number.isFinite(parsed)) {
-		throw new NodeOperationError(node, `${label} must be a number`, { itemIndex });
-	}
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+        throw new NodeOperationError(node, `${label} must be a number`, { itemIndex });
+    }
 
-	return Math.min(Math.max(Math.trunc(parsed), min), max);
+    return Math.min(Math.max(Math.trunc(parsed), min), max);
 }
 
 /**
@@ -53,68 +53,53 @@ export function toBoundedInteger(
  * because reading it as "no entries" would drop media from the post and publish
  * it anyway.
  */
-export function toCollectionEntries(
-	node: INode,
-	value: unknown,
-	label: string,
-	itemIndex: number,
-): IDataObject[] {
-	if (value === undefined || value === null || value === '') {
-		return [];
-	}
+export function toCollectionEntries(node: INode, value: unknown, label: string, itemIndex: number): IDataObject[] {
+    if (value === undefined || value === null || value === '') {
+        return [];
+    }
 
-	const entries = Array.isArray(value) ? value : [value];
+    const entries = Array.isArray(value) ? value : [value];
 
-	return entries.map((entry, entryIndex) => {
-		if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
-			throw new NodeOperationError(
-				node,
-				`${label} entry ${entryIndex + 1} is not a set of fields`,
-				{
-					itemIndex,
-					description: `Received the ${Array.isArray(entry) ? 'array' : typeof entry} ${JSON.stringify(entry)}. Provide one object of fields per entry.`,
-				},
-			);
-		}
+    return entries.map((entry, entryIndex) => {
+        if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) {
+            throw new NodeOperationError(node, `${label} entry ${entryIndex + 1} is not a set of fields`, {
+                itemIndex,
+                description: `Received the ${Array.isArray(entry) ? 'array' : typeof entry} ${JSON.stringify(entry)}. Provide one object of fields per entry.`
+            });
+        }
 
-		return entry as IDataObject;
-	});
+        return entry as IDataObject;
+    });
 }
 
-export function assertMaxLength(
-	node: INode,
-	value: string,
-	max: number,
-	label: string,
-	itemIndex: number,
-): void {
-	if (value.length > max) {
-		throw new NodeOperationError(
-			node,
-			`${label} is ${value.length} characters long, but the API accepts at most ${max}`,
-			{ itemIndex },
-		);
-	}
+export function assertMaxLength(node: INode, value: string, max: number, label: string, itemIndex: number): void {
+    if (value.length > max) {
+        throw new NodeOperationError(
+            node,
+            `${label} is ${value.length} characters long, but the API accepts at most ${max}`,
+            { itemIndex }
+        );
+    }
 }
 
 /** The API validates media URLs with Symfony's Url constraint: http and https only. */
 export function assertHttpUrl(node: INode, value: string, label: string, itemIndex: number): void {
-	let parsed: URL;
-	try {
-		parsed = new URL(value);
-	} catch {
-		throw new NodeOperationError(node, `${label} is not a valid URL`, {
-			itemIndex,
-			description: `Received "${value}". The API expects an absolute http or https URL.`,
-		});
-	}
+    let parsed: URL;
+    try {
+        parsed = new URL(value);
+    } catch {
+        throw new NodeOperationError(node, `${label} is not a valid URL`, {
+            itemIndex,
+            description: `Received "${value}". The API expects an absolute http or https URL.`
+        });
+    }
 
-	if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-		throw new NodeOperationError(node, `${label} must be an http or https URL`, {
-			itemIndex,
-			description: `Received the "${parsed.protocol.replace(':', '')}" scheme, which the API rejects.`,
-		});
-	}
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new NodeOperationError(node, `${label} must be an http or https URL`, {
+            itemIndex,
+            description: `Received the "${parsed.protocol.replace(':', '')}" scheme, which the API rejects.`
+        });
+    }
 }
 
 /**
@@ -124,25 +109,20 @@ export function assertHttpUrl(node: INode, value: string, label: string, itemInd
  * in — including date-only values, which are extended to local midnight because
  * JavaScript would otherwise read them as UTC midnight.
  */
-export function toAtomTimestamp(
-	node: INode,
-	value: unknown,
-	label: string,
-	itemIndex: number,
-): string {
-	const raw = toTrimmedString(value);
-	if (raw === '') {
-		return '';
-	}
+export function toAtomTimestamp(node: INode, value: unknown, label: string, itemIndex: number): string {
+    const raw = toTrimmedString(value);
+    if (raw === '') {
+        return '';
+    }
 
-	const normalized = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw;
-	const parsed = new Date(normalized);
-	if (Number.isNaN(parsed.getTime())) {
-		throw new NodeOperationError(node, `${label} is not a valid date`, {
-			itemIndex,
-			description: `Received "${raw}". Provide an ISO 8601 timestamp, for example 2026-05-17T10:00:00Z.`,
-		});
-	}
+    const normalized = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw}T00:00:00` : raw;
+    const parsed = new Date(normalized);
+    if (Number.isNaN(parsed.getTime())) {
+        throw new NodeOperationError(node, `${label} is not a valid date`, {
+            itemIndex,
+            description: `Received "${raw}". Provide an ISO 8601 timestamp, for example 2026-05-17T10:00:00Z.`
+        });
+    }
 
-	return parsed.toISOString().replace(/\.\d{3}Z$/, '+00:00');
+    return parsed.toISOString().replace(/\.\d{3}Z$/, '+00:00');
 }

@@ -3,16 +3,16 @@
  * coerce before trimming.
  */
 export function toTrimmedString(value: unknown): string {
-	return String(value ?? '').trim();
+    return String(value ?? '').trim();
 }
 
 /** A `multiOptions` value may arrive as an array or as a comma-separated string. */
 export function toStringList(value: unknown): string[] {
-	const raw = Array.isArray(value) ? value : String(value ?? '').split(',');
+    const raw = Array.isArray(value) ? value : String(value ?? '').split(',');
 
-	return raw.map((entry) => toTrimmedString(entry)).filter((entry) => entry !== '');
+    return raw.map((entry) => toTrimmedString(entry)).filter((entry) => entry !== '');
 }
 
 export function toUniqueStringList(value: unknown): string[] {
-	return [...new Set(toStringList(value))];
+    return [...new Set(toStringList(value))];
 }

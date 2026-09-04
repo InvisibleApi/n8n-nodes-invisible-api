@@ -6,11 +6,11 @@ export const DEFAULT_BASE_URL = 'https://api.invisibleapi.ai';
 const TRAILING_SLASHES = /\/+$/;
 
 export function normalizeBaseUrl(value: unknown): string {
-	const trimmed = String(value ?? '')
-		.trim()
-		.replace(TRAILING_SLASHES, '');
+    const trimmed = String(value ?? '')
+        .trim()
+        .replace(TRAILING_SLASHES, '');
 
-	return trimmed || DEFAULT_BASE_URL;
+    return trimmed || DEFAULT_BASE_URL;
 }
 
 /**
@@ -22,18 +22,18 @@ export const BASE_URL_TEST_EXPRESSION = `={{ ($credentials.baseUrl || '').trim()
 
 /** The API key travels as a bearer token, so the scheme carrying it matters. */
 export function assertSupportedBaseUrl(node: INode, baseUrl: string): void {
-	let parsed: URL;
-	try {
-		parsed = new URL(baseUrl);
-	} catch {
-		throw new NodeOperationError(node, 'The credential base URL is not a valid URL', {
-			description: `Received "${baseUrl}". Provide an absolute URL such as ${DEFAULT_BASE_URL}.`,
-		});
-	}
+    let parsed: URL;
+    try {
+        parsed = new URL(baseUrl);
+    } catch {
+        throw new NodeOperationError(node, 'The credential base URL is not a valid URL', {
+            description: `Received "${baseUrl}". Provide an absolute URL such as ${DEFAULT_BASE_URL}.`
+        });
+    }
 
-	if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-		throw new NodeOperationError(node, 'The credential base URL must use http or https', {
-			description: `Received the "${parsed.protocol.replace(':', '')}" scheme.`,
-		});
-	}
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        throw new NodeOperationError(node, 'The credential base URL must use http or https', {
+            description: `Received the "${parsed.protocol.replace(':', '')}" scheme.`
+        });
+    }
 }
