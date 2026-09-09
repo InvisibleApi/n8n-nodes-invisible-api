@@ -10,5 +10,5 @@ const VIDEO_EXTENSIONS = /\.(mp4|mov|m4v|webm|avi|mpeg|mpg)$/i;
  * valid absolute URL; callers validate first.
  */
 export function inferMediaTypeFromUrl(url: string): 'image' | 'video' {
-	return VIDEO_EXTENSIONS.test(new URL(url).pathname) ? 'video' : 'image';
+    return VIDEO_EXTENSIONS.test(new URL(url).pathname) ? 'video' : 'image';
 }

@@ -6,58 +6,50 @@ import { invisibleApiRequest } from '../transport';
 const INSTAGRAM_PROVIDER = 'instagram';
 const INSTAGRAM_TARGET_TYPE = 'instagram_professional_account';
 
-export async function getOrganizations(
-	this: ILoadOptionsFunctions,
-): Promise<INodePropertyOptions[]> {
-	const organizations = (await invisibleApiRequest.call(
-		this,
-		'GET',
-		'/api/v1/organizations',
-	)) as IDataObject[];
+export async function getOrganizations(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+    const organizations = (await invisibleApiRequest.call(this, 'GET', '/api/v1/organizations')) as IDataObject[];
 
-	if (!Array.isArray(organizations)) {
-		return [];
-	}
+    if (!Array.isArray(organizations)) {
+        return [];
+    }
 
-	return organizations.map((organization) => ({
-		name: (organization.name as string) || (organization.id as string),
-		value: organization.id as string,
-	}));
+    return organizations.map((organization) => ({
+        name: (organization.name as string) || (organization.id as string),
+        value: organization.id as string
+    }));
 }
 
 async function fetchSocialAccounts(this: ILoadOptionsFunctions): Promise<IDataObject[]> {
-	const organizationId = this.getCurrentNodeParameter('organizationId') as string;
-	if (!organizationId) {
-		return [];
-	}
+    const organizationId = this.getCurrentNodeParameter('organizationId') as string;
+    if (!organizationId) {
+        return [];
+    }
 
-	const accounts = (await invisibleApiRequest.call(
-		this,
-		'GET',
-		`/api/v1/organizations/${encodeURIComponent(organizationId)}/social-accounts`,
-	)) as IDataObject[];
+    const accounts = (await invisibleApiRequest.call(
+        this,
+        'GET',
+        `/api/v1/organizations/${encodeURIComponent(organizationId)}/social-accounts`
+    )) as IDataObject[];
 
-	return Array.isArray(accounts) ? accounts : [];
+    return Array.isArray(accounts) ? accounts : [];
 }
 
 function toAccountOption(account: IDataObject): INodePropertyOptions {
-	const displayName = (account.displayName as string) || (account.id as string);
-	const handle = account.handleOrUsername as string | null | undefined;
-	const provider = (account.provider as string) || 'unknown';
-	const label = handle ? `${displayName} (@${handle})` : displayName;
+    const displayName = (account.displayName as string) || (account.id as string);
+    const handle = account.handleOrUsername as string | null | undefined;
+    const provider = (account.provider as string) || 'unknown';
+    const label = handle ? `${displayName} (@${handle})` : displayName;
 
-	return {
-		name: `${label} — ${provider}`,
-		value: account.id as string,
-	};
+    return {
+        name: `${label} — ${provider}`,
+        value: account.id as string
+    };
 }
 
-export async function getSocialAccounts(
-	this: ILoadOptionsFunctions,
-): Promise<INodePropertyOptions[]> {
-	const accounts = await fetchSocialAccounts.call(this);
+export async function getSocialAccounts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+    const accounts = await fetchSocialAccounts.call(this);
 
-	return accounts.map(toAccountOption);
+    return accounts.map(toAccountOption);
 }
 
 /**
@@ -70,24 +62,22 @@ export async function getSocialAccounts(
  * which this endpoint does not report — so a listed account can still be
  * refused at request time.
  */
-export async function getInstagramSocialAccounts(
-	this: ILoadOptionsFunctions,
-): Promise<INodePropertyOptions[]> {
-	const accounts = await fetchSocialAccounts.call(this);
+export async function getInstagramSocialAccounts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+    const accounts = await fetchSocialAccounts.call(this);
 
-	return accounts
-		.filter(
-			(account) =>
-				String(account.provider ?? '').toLowerCase() === INSTAGRAM_PROVIDER &&
-				String(account.targetType ?? '').toLowerCase() === INSTAGRAM_TARGET_TYPE,
-		)
-		.map((account) => {
-			const displayName = (account.displayName as string) || (account.id as string);
-			const handle = account.handleOrUsername as string | null | undefined;
+    return accounts
+        .filter(
+            (account) =>
+                String(account.provider ?? '').toLowerCase() === INSTAGRAM_PROVIDER &&
+                String(account.targetType ?? '').toLowerCase() === INSTAGRAM_TARGET_TYPE
+        )
+        .map((account) => {
+            const displayName = (account.displayName as string) || (account.id as string);
+            const handle = account.handleOrUsername as string | null | undefined;
 
-			return {
-				name: handle ? `${displayName} (@${handle})` : displayName,
-				value: account.id as string,
-			};
-		});
+            return {
+                name: handle ? `${displayName} (@${handle})` : displayName,
+                value: account.id as string
+            };
+        });
 }

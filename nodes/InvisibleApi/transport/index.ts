@@ -1,9 +1,9 @@
 import type {
-	IDataObject,
-	IExecuteFunctions,
-	IHttpRequestMethods,
-	IHttpRequestOptions,
-	ILoadOptionsFunctions,
+    IDataObject,
+    IExecuteFunctions,
+    IHttpRequestMethods,
+    IHttpRequestOptions,
+    ILoadOptionsFunctions
 } from 'n8n-workflow';
 import { NodeOperationError } from 'n8n-workflow';
 
@@ -20,36 +20,36 @@ export type InvisibleApiResponse = IDataObject | IDataObject[];
  * describe their endpoint.
  */
 export async function invisibleApiRequest(
-	this: IExecuteFunctions | ILoadOptionsFunctions,
-	method: IHttpRequestMethods,
-	endpoint: string,
-	body?: IDataObject,
-	qs?: IDataObject,
+    this: IExecuteFunctions | ILoadOptionsFunctions,
+    method: IHttpRequestMethods,
+    endpoint: string,
+    body?: IDataObject,
+    qs?: IDataObject
 ): Promise<InvisibleApiResponse> {
-	const credentials = await this.getCredentials(CREDENTIALS_NAME);
-	const baseUrl = normalizeBaseUrl(credentials.baseUrl);
-	assertSupportedBaseUrl(this.getNode(), baseUrl);
+    const credentials = await this.getCredentials(CREDENTIALS_NAME);
+    const baseUrl = normalizeBaseUrl(credentials.baseUrl);
+    assertSupportedBaseUrl(this.getNode(), baseUrl);
 
-	const options: IHttpRequestOptions = {
-		method,
-		url: `${baseUrl}${endpoint}`,
-		headers: { Accept: 'application/json' },
-		json: true,
-	};
+    const options: IHttpRequestOptions = {
+        method,
+        url: `${baseUrl}${endpoint}`,
+        headers: { Accept: 'application/json' },
+        json: true
+    };
 
-	if (qs !== undefined && Object.keys(qs).length > 0) {
-		options.qs = qs;
-	}
+    if (qs !== undefined && Object.keys(qs).length > 0) {
+        options.qs = qs;
+    }
 
-	if (body !== undefined) {
-		options.body = body;
-	}
+    if (body !== undefined) {
+        options.body = body;
+    }
 
-	return (await this.helpers.httpRequestWithAuthentication.call(
-		this,
-		CREDENTIALS_NAME,
-		options,
-	)) as InvisibleApiResponse;
+    return (await this.helpers.httpRequestWithAuthentication.call(
+        this,
+        CREDENTIALS_NAME,
+        options
+    )) as InvisibleApiResponse;
 }
 
 /**
@@ -69,58 +69,55 @@ const EMPTY_PAGES_BEFORE_END = 3;
  * with several deliveries can straddle a page boundary and be returned twice —
  * hence accumulating by ID.
  */
-export async function invisibleApiRequestAllItems(
-	this: IExecuteFunctions,
-	endpoint: string,
-): Promise<IDataObject[]> {
-	const collected: IDataObject[] = [];
-	const seenIds = new Set<string>();
-	const maxPages = 1000;
-	const perPage = 100;
-	let emptyPages = 0;
+export async function invisibleApiRequestAllItems(this: IExecuteFunctions, endpoint: string): Promise<IDataObject[]> {
+    const collected: IDataObject[] = [];
+    const seenIds = new Set<string>();
+    const maxPages = 1000;
+    const perPage = 100;
+    let emptyPages = 0;
 
-	for (let page = 1; page <= maxPages; page += 1) {
-		const response = (await invisibleApiRequest.call(this, 'GET', endpoint, undefined, {
-			page,
-			perPage,
-		})) as IDataObject[];
+    for (let page = 1; page <= maxPages; page += 1) {
+        const response = (await invisibleApiRequest.call(this, 'GET', endpoint, undefined, {
+            page,
+            perPage
+        })) as IDataObject[];
 
-		if (!Array.isArray(response)) {
-			return collected;
-		}
+        if (!Array.isArray(response)) {
+            return collected;
+        }
 
-		if (response.length === 0) {
-			emptyPages += 1;
-			if (emptyPages >= EMPTY_PAGES_BEFORE_END) {
-				return collected;
-			}
+        if (response.length === 0) {
+            emptyPages += 1;
+            if (emptyPages >= EMPTY_PAGES_BEFORE_END) {
+                return collected;
+            }
 
-			continue;
-		}
+            continue;
+        }
 
-		emptyPages = 0;
+        emptyPages = 0;
 
-		for (const entry of response) {
-			const rawId = entry?.id;
-			const id = typeof rawId === 'string' || typeof rawId === 'number' ? String(rawId) : undefined;
+        for (const entry of response) {
+            const rawId = entry?.id;
+            const id = typeof rawId === 'string' || typeof rawId === 'number' ? String(rawId) : undefined;
 
-			if (id !== undefined) {
-				if (seenIds.has(id)) {
-					continue;
-				}
+            if (id !== undefined) {
+                if (seenIds.has(id)) {
+                    continue;
+                }
 
-				seenIds.add(id);
-			}
+                seenIds.add(id);
+            }
 
-			collected.push(entry);
-		}
-	}
+            collected.push(entry);
+        }
+    }
 
-	// Reaching the cap without seeing an empty page means the end of the list
-	// was never confirmed — returning what was collected would silently pass
-	// off partial (or, if the API ignored `page`, duplicated) data as complete.
-	throw new NodeOperationError(
-		this.getNode(),
-		`Stopped paginating "${endpoint}" after ${maxPages} pages without reaching the end of the list`,
-	);
+    // Reaching the cap without seeing an empty page means the end of the list
+    // was never confirmed — returning what was collected would silently pass
+    // off partial (or, if the API ignored `page`, duplicated) data as complete.
+    throw new NodeOperationError(
+        this.getNode(),
+        `Stopped paginating "${endpoint}" after ${maxPages} pages without reaching the end of the list`
+    );
 }

@@ -12,15 +12,15 @@ import type { INodeProperties } from 'n8n-workflow';
  * hide the field for every other resource's Get Many.
  */
 export const organizationIdField: INodeProperties = {
-	displayName: 'Organization Name or ID',
-	name: 'organizationId',
-	type: 'options',
-	typeOptions: { loadOptionsMethod: 'getOrganizations' },
-	required: true,
-	default: '',
-	description:
-		'Organization the request runs against. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
-	displayOptions: {
-		hide: { resource: ['organization'] },
-	},
+    displayName: 'Organization Name or ID',
+    name: 'organizationId',
+    type: 'options',
+    typeOptions: { loadOptionsMethod: 'getOrganizations' },
+    required: true,
+    default: '',
+    description:
+        'Organization the request runs against. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+    displayOptions: {
+        hide: { resource: ['organization'] }
+    }
 };
