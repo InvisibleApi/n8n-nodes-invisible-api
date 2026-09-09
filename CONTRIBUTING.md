@@ -40,6 +40,48 @@ Adding a resource means a description module, an action module, and one line in
 than adding a new pattern, and put request building in `actions/` and UI
 parameters in `descriptions/`.
 
+## Coding standards
+
+TypeScript throughout, `strict` mode on. Formatting is enforced by Prettier
+(`npm run format`); the rules below that tooling cannot check are on you and on
+review.
+
+### Formatting
+
+- 4-space indentation (spaces, not tabs); lines up to 120 characters.
+- Single quotes; semicolons always; **no trailing commas** — objects, arrays
+  and argument lists alike.
+- LF line endings and a trailing newline at end of file.
+
+### TypeScript
+
+- **Explicit return types** on exported functions and shared helpers
+  (`: void`, `: Promise<IDataObject[]>`, …). Single-expression inline arrows
+  may rely on inference. This is not linted — it is on you.
+- **No `enum`** — use const maps or union types instead.
+- No `any`; use `unknown` when the shape is truly unknown and narrow it with
+  type guards.
+- Prefer `interface` over `type` for extendable object shapes; `type` is fine
+  for unions and function signatures.
+- Reach for the utility types (`Partial`, `Pick`, `Omit`, `Required`) before
+  writing a near-duplicate shape, and for `?.` / `??` before manual null
+  checks.
+
+### Naming
+
+- Utility modules `camelCase.ts`; constants `UPPER_SNAKE_CASE`.
+- Booleans `isX` / `hasX`; event handlers `handleX`; fetchers `fetchX`;
+  toggles `toggleX`.
+- Prefer named exports.
+
+### Errors and logging
+
+- **No `console.log` / `console.error`** in shipped code — errors surface
+  through `NodeOperationError` / `NodeApiError`.
+- `try`/`catch` only around operations that can actually fail in a way you
+  handle; validate input up front instead of catching what bad input causes.
+- JSDoc for non-obvious functions; `TODO` comments carry an issue reference.
+
 ## Pull requests
 
 - **Branch off `main`** and open the PR against `main`. `main` is protected; it
