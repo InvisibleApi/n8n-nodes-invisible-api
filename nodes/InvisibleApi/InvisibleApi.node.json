@@ -1,0 +1,19 @@
+{
+    "node": "n8n-nodes-invisible-api.invisibleApi",
+    "nodeVersion": "1.0",
+    "codexVersion": "1.0",
+    "categories": ["Marketing", "Communication"],
+    "resources": {
+        "credentialDocumentation": [
+            {
+                "url": "https://api.invisibleapi.ai/public/developer-docs.yaml"
+            }
+        ],
+        "primaryDocumentation": [
+            {
+                "url": "https://api.invisibleapi.ai/public/developer-docs.yaml"
+            }
+        ]
+    },
+    "alias": ["invisible", "instagram", "x", "twitter", "publishing", "scheduling", "insights", "social media"]
+}

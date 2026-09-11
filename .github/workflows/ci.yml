@@ -1,0 +1,48 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Use Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+
+            - name: Update npm
+              # package-lock.json must be generated and consumed by npm 11.19.1+:
+              # the npm 10 bundled with Node.js 22 builds a different tree (`npm ci`
+              # fails its sync check), and npm ≤11.6 writes lockfiles its own ci
+              # rejects when package.json has overrides. Same pinned version as
+              # publish.yml, so CI installs with the exact toolchain that publishes.
+              run: 'npm install -g npm@11.19.1'
+
+            - name: Install dependencies
+              run: 'npm i'
+
+            - name: Run lint
+              run: 'npm run lint'
+
+            - name: Check formatting
+              run: 'npx prettier --check .'
+
+            - name: Audit runtime dependencies
+              run: 'npm audit --omit=dev'
+
+            - name: Typecheck
+              run: 'npm run typecheck'
+
+            - name: Run tests
+              run: 'npm test'
+
+            - name: Run build
+              run: 'npm run build'

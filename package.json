@@ -1,0 +1,87 @@
+{
+    "name": "n8n-nodes-invisible-api",
+    "version": "1.0.0",
+    "description": "n8n community node for the InvisibleAPI — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
+    "keywords": [
+        "n8n-community-node-package",
+        "n8n",
+        "invisible",
+        "invisibleapi",
+        "instagram",
+        "instagram api",
+        "x",
+        "twitter",
+        "social media publishing",
+        "content publishing",
+        "post scheduling",
+        "social media scheduler",
+        "instagram insights",
+        "social analytics",
+        "multi-account"
+    ],
+    "license": "MIT",
+    "homepage": "https://invisibleapi.ai",
+    "author": {
+        "name": "InvisibleAPI",
+        "email": "support@invisibleapi.ai"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/InvisibleApi/n8n-nodes-invisible-api.git"
+    },
+    "bugs": {
+        "url": "https://github.com/InvisibleApi/n8n-nodes-invisible-api/issues"
+    },
+    "main": "dist/nodes/InvisibleApi/InvisibleApi.node.js",
+    "scripts": {
+        "build": "tsc -p tsconfig.json && cp nodes/InvisibleApi/invisibleApi.svg nodes/InvisibleApi/invisibleApi.dark.svg dist/nodes/InvisibleApi/",
+        "dev": "n8n-node dev",
+        "format": "prettier . --write",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "prepack": "npm run build",
+        "prepublishOnly": "n8n-node prerelease",
+        "release": "n8n-node release",
+        "test": "vitest run",
+        "typecheck": "tsc -p tsconfig.test.json"
+    },
+    "files": [
+        "dist"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "n8n": {
+        "n8nNodesApiVersion": 1,
+        "credentials": [
+            "dist/credentials/InvisibleApi.credentials.js"
+        ],
+        "nodes": [
+            "dist/nodes/InvisibleApi/InvisibleApi.node.js"
+        ],
+        "iconUrl": "file:dist/nodes/InvisibleApi/invisibleApi.svg"
+    },
+    "overrides": {
+        "qs": "^6.16.0",
+        "uuid": "^11.1.1",
+        "stream-json": "^3.6.0"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.29.0",
+        "@n8n/eslint-plugin-community-nodes": "^0.27.0",
+        "@n8n/node-cli": "^0.46.2",
+        "@types/node": "^22.0.0",
+        "eslint": "9.29.0",
+        "n8n-workflow": "^2.36.4",
+        "prettier": "^3.0.0",
+        "typescript": "^5.0.0",
+        "vitest": "^4.1.10"
+    },
+    "peerDependencies": {
+        "n8n-workflow": "*"
+    },
+    "engines": {
+        "node": ">=22.0.0",
+        "npm": ">=8.0.0"
+    }
+}

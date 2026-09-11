@@ -1,0 +1,33 @@
+name: Feature request
+description: A new operation, parameter or behaviour
+labels: [enhancement]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              The node's shape follows the InvisibleAPI backend. A new resource or operation usually needs an endpoint to exist and be stable, so say which one it maps to if you know.
+    - type: textarea
+      id: problem
+      attributes:
+          label: What you are trying to do
+          description: The workflow you want to build and where the node stops you today.
+      validations:
+          required: true
+    - type: textarea
+      id: proposal
+      attributes:
+          label: Proposed change
+          description: The operation, parameter or behaviour you have in mind.
+      validations:
+          required: true
+    - type: input
+      id: endpoint
+      attributes:
+          label: InvisibleAPI endpoint or capability
+          description: From the [API reference](https://api.invisibleapi.ai/public/developer-docs.yaml), if you know it.
+          placeholder: POST /api/v1/organizations/{id}/publish-jobs
+    - type: textarea
+      id: workaround
+      attributes:
+          label: Current workaround
+          description: How you get by without it, for example an HTTP Request node.

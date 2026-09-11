@@ -1,0 +1,55 @@
+name: Bug report
+description: Something the node does wrong
+labels: [bug]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Do not report a security vulnerability here. Follow [SECURITY.md](../blob/main/SECURITY.md) instead.
+    - type: input
+      id: node-version
+      attributes:
+          label: Node version
+          description: The n8n-nodes-invisible-api version, shown under Settings → Community nodes.
+          placeholder: 1.0.0
+      validations:
+          required: true
+    - type: input
+      id: n8n-version
+      attributes:
+          label: n8n version
+          placeholder: 2.1.0
+      validations:
+          required: true
+    - type: input
+      id: operation
+      attributes:
+          label: Resource and operation
+          placeholder: Publish Job → Create
+      validations:
+          required: true
+    - type: textarea
+      id: expected
+      attributes:
+          label: What you expected
+      validations:
+          required: true
+    - type: textarea
+      id: actual
+      attributes:
+          label: What happened
+          description: The node's error message, if there was one. The node surfaces the API's problem detail, and that message is usually the whole answer.
+      validations:
+          required: true
+    - type: textarea
+      id: steps
+      attributes:
+          label: How to reproduce
+          description: The parameter values you set, or an exported workflow with credentials removed.
+    - type: checkboxes
+      id: redaction
+      attributes:
+          label: Redaction
+          options:
+              - label: This report contains no API key, credential value or real account ID
+                required: true
