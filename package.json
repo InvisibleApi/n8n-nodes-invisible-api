@@ -1,6 +1,6 @@
 {
     "name": "n8n-nodes-invisible-api",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "n8n community node for the InvisibleAPI — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
     "keywords": [
         "n8n-community-node-package",
@@ -60,11 +60,6 @@
             "dist/nodes/InvisibleApi/InvisibleApi.node.js"
         ],
         "iconUrl": "file:dist/nodes/InvisibleApi/invisibleApi.svg"
-    },
-    "overrides": {
-        "qs": "^6.16.0",
-        "uuid": "^11.1.1",
-        "stream-json": "^3.6.0"
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",

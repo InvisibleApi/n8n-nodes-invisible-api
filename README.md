@@ -77,7 +77,7 @@ Full instructions: [n8n community nodes installation guide](https://docs.n8n.io/
 
 ## Credentials
 
-Create an organization API key in the [InvisibleAPI dashboard](https://app.invisibleapi.ai) (**Organization → API Keys**) and paste it into the *InvisibleAPI* credential.
+Create an organization API key in the [InvisibleAPI dashboard](https://app.invisibleapi.ai) (**Organization → API Keys**) and paste it into the *Invisible API* credential.
 
 | | |
 |---|---|
@@ -105,7 +105,7 @@ Behaviour that will bite you otherwise:
 |---|---|
 | **n8n** | 2.x. Built and tested against `n8n-workflow` 2.38; requires community node support enabled |
 | **Node.js** | 22 or newer |
-| **InvisibleAPI** | An organization API key from the [dashboard](https://app.invisibleapi.ai); see [Credentials](#credentials) |
+| **Invisible API** | An organization API key from the [dashboard](https://app.invisibleapi.ai); see [Credentials](#credentials) |
 
 Only the latest published version of this node receives fixes. Upgrade under **Settings → Community nodes** in n8n.
 
