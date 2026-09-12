@@ -23,7 +23,7 @@
 #   2. Under "Publish access" → "Trusted Publishers", click "Add a publisher".
 #   3. Select GitHub Actions and fill in:
 #        Repository owner: InvisibleApi
-#        Repository name:  n8n-nodes-invisible-api
+#        Repository name:  n8n-nodes-invisibleapi
 #        Workflow name:    publish.yml
 #        Environment:      (leave blank)
 #   4. Leave the NPM_TOKEN secret unset in this repository. GitHub's OIDC

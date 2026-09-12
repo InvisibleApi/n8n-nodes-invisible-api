@@ -1,5 +1,5 @@
 {
-    "name": "n8n-nodes-invisible-api",
+    "name": "n8n-nodes-invisibleapi",
     "version": "1.0.1",
     "description": "n8n community node for the InvisibleAPI — one layer between your workflows and the social platforms behind them. Publish and schedule Instagram and X content, track publish job delivery, and pull Instagram account insights.",
     "keywords": [
@@ -27,10 +27,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/InvisibleApi/n8n-nodes-invisible-api.git"
+        "url": "git+https://github.com/InvisibleApi/n8n-nodes-invisibleapi.git"
     },
     "bugs": {
-        "url": "https://github.com/InvisibleApi/n8n-nodes-invisible-api/issues"
+        "url": "https://github.com/InvisibleApi/n8n-nodes-invisibleapi/issues"
     },
     "main": "dist/nodes/InvisibleApi/InvisibleApi.node.js",
     "scripts": {
