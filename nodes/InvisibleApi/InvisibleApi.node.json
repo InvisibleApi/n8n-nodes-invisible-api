@@ -1,5 +1,5 @@
 {
-    "node": "n8n-nodes-invisibleapi.invisibleApi",
+    "node": "n8n-nodes-invisible-api.invisibleApi",
     "nodeVersion": "1.0",
     "codexVersion": "1.0",
     "categories": ["Marketing", "Communication"],
