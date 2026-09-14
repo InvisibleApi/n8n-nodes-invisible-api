@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.1
+
+Changes required by n8n's automated community node review. No functional changes.
+
+- The package is now published as `n8n-nodes-invisibleapi`, matching the renamed GitHub repository. The previous name, `n8n-nodes-invisible-api`, is no longer maintained. Node type identifiers change accordingly (`n8n-nodes-invisibleapi.invisibleApi`), so install the new package and re-add the node in workflows that used the old one.
+- The credential is now displayed as **Invisible API** instead of **InvisibleAPI**, since n8n requires credential display names to end in "API". Existing credentials keep working: the internal credential name is unchanged.
+- Removed the `overrides` field from `package.json`, which n8n does not allow in community node packages. It only pinned dependencies of the development toolchain; the published package has no runtime dependencies.
+
 ## 1.0.0
 
 First public release of the n8n community node for [InvisibleAPI](https://invisibleapi.ai).

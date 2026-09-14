@@ -4,9 +4,7 @@ import { BASE_URL_TEST_EXPRESSION, DEFAULT_BASE_URL } from '../nodes/InvisibleAp
 
 export class InvisibleApi implements ICredentialType {
     name = 'invisibleApi';
-    // The brand name already ends in "API" as one word, so the linter's " API" suffix would read "InvisibleAPI API".
-    // eslint-disable-next-line n8n-nodes-base/cred-class-field-display-name-missing-api
-    displayName = 'InvisibleAPI';
+    displayName = 'Invisible API';
     icon: Icon = {
         light: 'file:../nodes/InvisibleApi/invisibleApi.svg',
         dark: 'file:../nodes/InvisibleApi/invisibleApi.dark.svg'

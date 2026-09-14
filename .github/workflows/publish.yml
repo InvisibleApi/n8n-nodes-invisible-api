@@ -23,7 +23,7 @@
 #   2. Under "Publish access" → "Trusted Publishers", click "Add a publisher".
 #   3. Select GitHub Actions and fill in:
 #        Repository owner: InvisibleApi
-#        Repository name:  n8n-nodes-invisible-api
+#        Repository name:  n8n-nodes-invisibleapi
 #        Workflow name:    publish.yml
 #        Environment:      (leave blank)
 #   4. Leave the NPM_TOKEN secret unset in this repository. GitHub's OIDC
@@ -143,8 +143,7 @@ jobs:
               # 22 bundles npm 10. Pinned to an exact version because this job signs
               # what ends up on the registry; bump it deliberately, never via @latest.
               # Same version as ci.yml; regenerate package-lock.json with this
-              # version too (npm ≤11.6 writes lockfiles its own ci rejects when
-              # package.json has overrides).
+              # version too.
               run: npm install -g npm@11.19.1
 
             - name: Install dependencies

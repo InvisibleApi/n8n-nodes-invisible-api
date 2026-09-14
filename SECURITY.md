@@ -7,7 +7,7 @@ open a public issue for a vulnerability — an issue is visible to everyone the
 moment you file it.
 
 Include whatever you have: what you did, what happened, the version of this node
-(`n8n-nodes-invisible-api`) and of n8n, and anything that helps us reproduce it.
+(`n8n-nodes-invisibleapi`) and of n8n, and anything that helps us reproduce it.
 A proof of concept is welcome but not required.
 
 We will acknowledge your report and tell you whether we can reproduce it. If we

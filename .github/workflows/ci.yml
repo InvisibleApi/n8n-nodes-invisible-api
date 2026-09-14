@@ -21,9 +21,8 @@ jobs:
             - name: Update npm
               # package-lock.json must be generated and consumed by npm 11.19.1+:
               # the npm 10 bundled with Node.js 22 builds a different tree (`npm ci`
-              # fails its sync check), and npm ≤11.6 writes lockfiles its own ci
-              # rejects when package.json has overrides. Same pinned version as
-              # publish.yml, so CI installs with the exact toolchain that publishes.
+              # fails its sync check). Same pinned version as publish.yml, so CI
+              # installs with the exact toolchain that publishes.
               run: 'npm install -g npm@11.19.1'
 
             - name: Install dependencies
