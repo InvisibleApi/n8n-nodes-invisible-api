@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
     - name: Security vulnerability
-      url: https://github.com/InvisibleApi/n8n-nodes-invisibleapi/blob/main/SECURITY.md
+      url: https://github.com/InvisibleApi/n8n-nodes-invisible-api/blob/main/SECURITY.md
       about: Do not open a public issue. SECURITY.md explains how to report privately.
     - name: Questions and support
       url: mailto:support@invisibleapi.ai
