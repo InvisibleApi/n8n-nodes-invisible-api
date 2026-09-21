@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2
+
+Change required by n8n's automated community node review. No functional changes.
+
+- The node codex now lists the category **Marketing & Content** instead of **Marketing**, which is not in n8n's allowed set and was silently dropped by the n8n UI.
+
 ## 1.0.1
 
 Changes required by n8n's automated community node review. No functional changes.
