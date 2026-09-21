@@ -170,17 +170,17 @@ jobs:
               # `n8n-node release` can exit 0 without publishing (a failure to spawn
               # `npm publish` is reported as exit code 0), so confirm that the version
               # and its provenance attestation are really on the registry. The retries
-              # cover registry replication lag.
+              # cover registry processing lag, which took about three minutes for 1.0.1.
               run: |
                   PACKAGE_NAME="$(node -p "require('./package.json').name")"
-                  for attempt in 1 2 3 4 5 6; do
+                  for attempt in $(seq 1 20); do
                     ATTESTATION_URL="$(npm view "$PACKAGE_NAME@$GITHUB_REF_NAME" dist.attestations.url 2>/dev/null || true)"
                     if [ -n "$ATTESTATION_URL" ]; then
                       echo "$PACKAGE_NAME@$GITHUB_REF_NAME is on npm with provenance: $ATTESTATION_URL"
                       exit 0
                     fi
-                    echo "Not visible on the registry yet (attempt $attempt of 6), retrying in 10s."
-                    sleep 10
+                    echo "Not visible on the registry yet (attempt $attempt of 20), retrying in 15s."
+                    sleep 15
                   done
                   echo "::error::$PACKAGE_NAME@$GITHUB_REF_NAME is not on npm with a provenance attestation. Check the Release step output."
                   exit 1
