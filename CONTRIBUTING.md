@@ -84,6 +84,10 @@ review.
 
 ## Pull requests
 
+The end-to-end process — issue ownership, branch naming, gates, review and merge
+rules — is in [WORKFLOW.md](WORKFLOW.md). The points below are the ones that
+trip people up most often.
+
 - **Branch off `main`** and open the PR against `main`. `main` is protected; it
   takes a review and passing CI.
 - **One concern per PR.** A bug fix and a new operation are two pull requests.
