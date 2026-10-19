@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- The published package no longer contains `dist/tsconfig.tsbuildinfo`, a TypeScript build cache that made up about two thirds of the unpacked size. Incremental compilation is off; the build takes a couple of seconds either way.
+
 ## 1.0.2
 
 Change required by n8n's automated community node review. No functional changes.
